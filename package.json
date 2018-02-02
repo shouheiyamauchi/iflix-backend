@@ -2,5 +2,14 @@
   "name": "iflix-backend",
   "version": "1.0.0",
   "main": "server.js",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^1.14.12"
+  },
+  "dependencies": {
+    "express": "^4.16.2"
+  },
+  "scripts": {
+    "dev": "nodemon server.js"
+  }
 }

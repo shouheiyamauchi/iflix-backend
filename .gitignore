@@ -1,1 +1,5 @@
+# npm packages
 node_modules/
+
+# ignore env file - commented out for simplicity
+# .env
