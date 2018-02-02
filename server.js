@@ -1,4 +1,7 @@
+require('dotenv').config(); // read env variables from .env file
+
 const express = require('express');
+const db = require('./db'); // connect to database
 const apiV1 = require('./api/v1');
 
 const app = express();
