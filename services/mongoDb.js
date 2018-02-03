@@ -1,12 +1,8 @@
-const errorsToArray = mongoErrorHash => {
-  const errorsArray = Object.keys(mongoErrorHash.errors).map(field => {
-    return {
-      field,
-      message: mongoErrorHash.errors[field].message
-    };
-  });
+const convertMongoErrors = (mongoErrorObject, resErrorObject) => {
+  if (mongoErrorObject.errors) resErrorObject.validationErrors = mongoErrorObject.errors;
+  if (mongoErrorObject.kind === 'ObjectId') resErrorObject.objectId = mongoErrorObject;
 
-  return errorsArray;
-}
+  return resErrorObject;
+};
 
-module.exports = { errorsToArray };
+module.exports = { convertMongoErrors };
