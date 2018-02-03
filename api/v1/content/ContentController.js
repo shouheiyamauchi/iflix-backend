@@ -16,11 +16,11 @@ const list = (req, res) => {
 const show = (req, res) => {
   const errors = {};
   findContent(req.params.id, res, errors)
-  .then(statusCodeAndContent => {
-    const statusCode = statusCodeAndContent.statusCode;
-    const content = statusCodeAndContent.content;
-
+  .then(content => {
+    const statusCode = 200;
     apiService.sendResponse(res, statusCode, content, errors);
+  }).catch(errorStatusCode => {
+    apiService.sendResponse(res, errorStatusCode, {}, errors);
   });
 };
 
@@ -56,29 +56,28 @@ const saveContentSendRes = (res, content) => {
 };
 
 const findContent = async (id, res, errors) => {
-  let statusCode = null;
+  let errorStatusCode = null;
   let content = {};
 
   try {
     content = await Content.findById(id);
 
     if (!content) {
-      statusCode = 404;
+      errorStatusCode = 404;
       errors.notFound = { 'message': 'Move with that ID not found.'};
     };
-
-    statusCode = 200;
   } catch(mongoErrors) {
     mongoDbService.convertMongoErrors(mongoErrors, errors);
-    statusCode = 500;
+    errorStatusCode = 500;
   };
 
-  return new Promise(resolve => {
-    const statusCodeAndContent = {};
-    statusCodeAndContent.statusCode = statusCode;
-    statusCodeAndContent.content = content;
+  return new Promise((resolve, reject) => {
+    if (!errorStatusCode) {
+      resolve(content);
+    } else {
+      reject(errorStatusCode);
+    }
 
-    resolve(statusCodeAndContent);
   });
 };
 
