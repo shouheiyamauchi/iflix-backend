@@ -16,6 +16,6 @@
   },
   "scripts": {
     "dev": "nodemon index.js",
-    "test": "ENVIRONMENT=test mocha --exit test/api/v1/content"
+    "test": "ENVIRONMENT=test mocha ./test --recursive --exit"
   }
 }
