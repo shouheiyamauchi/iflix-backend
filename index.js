@@ -1,6 +1,9 @@
 require('dotenv').config(); // read env variables from .env file
-global.__rootDir = __dirname + '/'; // store root dir name for cleaner requires
-global.__servicesDir = __dirname + '/services/'; // store services dir name for cleaner requires
+
+// store directory names for cleaner requires
+global.__rootDir = __dirname;
+global.__modelsDir = __dirname + '/models';
+global.__helpersDir = __dirname + '/helpers';
 
 const server = require('./config/server');
 const db = require('./config/db'); // connect to database

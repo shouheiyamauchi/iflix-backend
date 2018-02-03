@@ -3,7 +3,7 @@ const should = require('should');
 const mongoose = require('mongoose');
 const app = require('../../../index');
 
-const Content = require(__rootDir + 'api/v1/content/contentModel');
+const Content = require(__modelsDir + '/Content');
 
 const contentsApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/contents/';
 
