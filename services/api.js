@@ -1,7 +1,7 @@
 const sendResponse = (res, statusCode, data, errors) => {
   res.status(statusCode).send({
-    data,
-    errors
+    data: data || {},
+    errors: errors || []
   });
 };
 

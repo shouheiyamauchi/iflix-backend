@@ -1,6 +1,6 @@
 const Content = require('./contentModel');
-const apiService = require(__services + 'api');
-const mongoDbService = require(__services + 'mongoDb');
+const apiService = require(__servicesDir + 'api');
+const mongoDbService = require(__servicesDir + 'mongoDb');
 
 const create = (req, res) => {
   const content = new Content();
@@ -26,9 +26,9 @@ const setContentValues = (req, content) => {
 const saveContentSendRes = (res, content) => {
   content.save((mongoErrors, content) => {
     const statusCode = mongoErrors ? 500 : 200;
-    const err = mongoDbService.errorsToArray(mongoErrors);
+    const errors = mongoErrors ? mongoDbService.errorsToArray(mongoErrors) : [];
 
-    apiService.sendResponse(res, statusCode, content, err);
+    apiService.sendResponse(res, statusCode, content, errors);
   });
 };
 
