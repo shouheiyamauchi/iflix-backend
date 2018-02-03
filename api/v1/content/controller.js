@@ -52,11 +52,11 @@ const update = (req, res) => {
 const destroy = (req, res) => {
   contentServices.findAndDestroyContent(req.params.id)
     .then(content => {
+      const statusCode = content ? 200 : 404;
       const result = {};
 
-      const statusCode = content ? 200 : 404;
-      if (statusCode === 404) result.notFound = { 'message': 'Content with ID ' + req.params.id + ' not found.'};
       if (statusCode === 200) result.message = content.title + ' was deleted.';
+      if (statusCode === 404) result.notFound = { 'message': 'Content with ID ' + req.params.id + ' not found.'};
 
       apiService.sendResponse(res, statusCode, result);
     }).catch(errors => {
