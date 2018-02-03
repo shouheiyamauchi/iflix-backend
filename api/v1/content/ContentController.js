@@ -14,20 +14,11 @@ const list = (req, res) => {
 };
 
 const show = (req, res) => {
-  Content.findById(req.params.id, (mongoErrors, content) => {
-    let statusCode = null;
-    const errors = {};
-
-    if (mongoErrors) mongoDbService.convertMongoErrors(mongoErrors, errors);
-
-    if (mongoErrors) {
-      statusCode = 500;
-    } else if (!content) {
-      statusCode = 404;
-      errors.notFound = { 'message': 'Move with that ID not found.'};
-    } else {
-      statusCode = 200;
-    };
+  const errors = {};
+  findContent(req.params.id, res, errors)
+  .then(statusCodeAndContent => {
+    const statusCode = statusCodeAndContent.statusCode;
+    const content = statusCodeAndContent.content;
 
     apiService.sendResponse(res, statusCode, content, errors);
   });
@@ -38,6 +29,10 @@ const create = (req, res) => {
   setContentValues(req, content);
   saveContentSendRes(res, content);
 };
+
+const update = (req, res) => {
+
+}
 
 const setContentValues = (req, content) => {
   const { title, genre, releaseDate, thumbnail } = req.query;
@@ -57,6 +52,33 @@ const saveContentSendRes = (res, content) => {
     if (mongoErrors) mongoDbService.convertMongoErrors(mongoErrors, errors);
 
     apiService.sendResponse(res, statusCode, content, errors);
+  });
+};
+
+const findContent = async (id, res, errors) => {
+  let statusCode = null;
+  let content = {};
+
+  try {
+    content = await Content.findById(id);
+
+    if (!content) {
+      statusCode = 404;
+      errors.notFound = { 'message': 'Move with that ID not found.'};
+    };
+
+    statusCode = 200;
+  } catch(mongoErrors) {
+    mongoDbService.convertMongoErrors(mongoErrors, errors);
+    statusCode = 500;
+  };
+
+  return new Promise(resolve => {
+    const statusCodeAndContent = {};
+    statusCodeAndContent.statusCode = statusCode;
+    statusCodeAndContent.content = content;
+
+    resolve(statusCodeAndContent);
   });
 };
 
