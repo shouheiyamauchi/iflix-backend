@@ -65,7 +65,7 @@ const setContentValues = (req, content) => {
 
   content.title = title;
   content.genre = genre;
-  if (releaseDate) content.releaseDate = Date.parse(releaseDate);
+  content.releaseDate = releaseDate ? Date.parse(releaseDate) : null;
   content.thumbnail = thumbnail;
   content.updated = Date.now();
 };

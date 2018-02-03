@@ -173,3 +173,66 @@ describe('3. Contents Create (POST /)', () => {
     });
   });
 });
+
+describe('4. Contents Update (PUT /:id)', () => {
+  describe('4.1 Successful requests', () => {
+    it('should be a successful API call', function(done) {
+      request(contentsApiEndPoint)
+        .put('/' + this.test.value._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+        .end((err, res) => {
+          res.should.have.property('status', 200);
+          done();
+        });
+    });
+
+    it('should return the updated content', function(done) {
+      request(contentsApiEndPoint)
+        .put('/' + this.test.value._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+        .end((err, res) => {
+          res.should.have.property('status', 200);
+          const content = res.body.data;
+          content.should.be.an.instanceOf(Object).and.have.property('title', 'Star Wars');
+          content.should.be.an.instanceOf(Object).and.have.property('genre', 'Sci-fi');
+          done();
+        });
+    });
+  });
+
+  describe('4.2 Unsuccessful requests', () => {
+    it('should give a 500 error for missing title', function(done) {
+      request(contentsApiEndPoint)
+        .put('/' + this.test.value._id + '?genre=Sci-fi&releaseDate=12-14-2017')
+        .end((err, res) => {
+          res.should.have.property('status', 500);
+          done();
+        });
+    });
+
+    it('should give a 500 error for missing genre', function(done) {
+      request(contentsApiEndPoint)
+        .put('/' + this.test.value._id + '?title=Star%20Wars&releaseDate=12-14-2017')
+        .end((err, res) => {
+          res.should.have.property('status', 500);
+          done();
+        });
+    });
+
+    it('should give a 500 error for missing release date', function(done) {
+      request(contentsApiEndPoint)
+        .put('/' + this.test.value._id + '?title=Star%20Wars&genre=Sci-fi')
+        .end((err, res) => {
+          res.should.have.property('status', 500);
+          done();
+        });
+    });
+
+    it('should give a 500 error for invalid release date format', function(done) {
+      request(contentsApiEndPoint)
+        .put('/' + this.test.value._id + '?title=Star%20Wars&releaseDate=14-00-2017')
+        .end((err, res) => {
+          res.should.have.property('status', 500);
+          done();
+        });
+    });
+  });
+});
