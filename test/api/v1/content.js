@@ -236,3 +236,56 @@ describe('4. Contents Update (PUT /:id)', () => {
     });
   });
 });
+
+describe('5. Contents Destroy (DELETE /:id)', () => {
+  describe('5.1 Successful requests', () => {
+    it('should be a successful API call', function(done) {
+      request(contentsApiEndPoint)
+        .delete('/' + this.test.value._id)
+        .end((err, res) => {
+          res.should.have.property('status', 200);
+          done();
+        });
+    });
+
+    it('should remove the content successfully', function(done) {
+      request(contentsApiEndPoint)
+        .delete('/' + this.test.value._id)
+        .end((err, res) => {
+          res.should.have.property('status', 200);
+          Content.find({}, (mongoErrors, contents) => {
+            contents.should.be.instanceof(Array).and.have.lengthOf(0);
+            done();
+          });
+        });
+    });
+  });
+
+  describe('5.2 Unsuccessful requests', () => {
+    it('should give a 404 error for non existent content', function(done) {
+      // generate random mongoose ID
+      let randomId = mongoose.Types.ObjectId();
+
+      // account for very unlikely edge case of randomId ending up to be the same
+      while (this.test.value._id == randomId) {
+        randomId = mongoose.Types.ObjectId();
+      };
+
+      request(contentsApiEndPoint)
+        .delete('/' + randomId)
+        .end((err, res) => {
+          res.should.have.property('status', 404);
+          done();
+        });
+    });
+
+    it('should give a 500 error for invalid id format', function(done) {
+      request(contentsApiEndPoint)
+        .delete('/' + '111')
+        .end((err, res) => {
+          res.should.have.property('status', 500);
+          done();
+        });
+    });
+  });
+});
