@@ -1,17 +1,16 @@
 const Content = require(__modelsDir + '/Content');
-const apiService = require(__helpersDir + '/api');
-const mongoDbService = require(__helpersDir + '/mongoDb');
-const { setContentValues, getAllContent, findContent, saveContent, findAndDestroyContent } = require('./services');
+const { sendResponse } = require(__helpersDir + '/api');
+const { getAllContent, findContent, setContentValues, saveContent, findAndDestroyContent } = require('./services');
 
 const list = (req, res) => {
   getAllContent()
     .then(contents => {
       const statusCode = 200;
-      apiService.sendResponse(res, statusCode, contents);
+      sendResponse(res, statusCode, contents);
     })
     .catch(errors => {
       const statusCode = 500;
-      apiService.sendResponse(res, statusCode, errors);
+      sendResponse(res, statusCode, errors);
     });
 };
 
@@ -19,11 +18,11 @@ const show = (req, res) => {
   findContent(req.params.id)
     .then(content => {
       const statusCode = 200;
-      apiService.sendResponse(res, statusCode, content);
+      sendResponse(res, statusCode, content);
     })
     .catch(errors => {
       const statusCode = ('notFound' in errors) ? 404 : 500;
-      apiService.sendResponse(res, statusCode, errors);
+      sendResponse(res, statusCode, errors);
     });
 };
 
@@ -34,11 +33,11 @@ const create = (req, res) => {
   saveContent(content)
     .then(content => {
       const statusCode = 200;
-      apiService.sendResponse(res, statusCode, content);
+      sendResponse(res, statusCode, content);
     })
     .catch(errors => {
       const statusCode = 500;
-      apiService.sendResponse(res, statusCode, errors);
+      sendResponse(res, statusCode, errors);
     });
 };
 
@@ -53,11 +52,11 @@ const update = (req, res) => {
   Promise.all([findContentPromise, updateContentPromise])
     .then(([foundContent, updatedContent]) => {
       const statusCode = 200;
-      apiService.sendResponse(res, statusCode, updatedContent);
+      sendResponse(res, statusCode, updatedContent);
     })
     .catch(errors => {
       const statusCode = ('notFound' in errors) ? 404 : 500;
-      apiService.sendResponse(res, statusCode, errors);
+      sendResponse(res, statusCode, errors);
     });
 };
 
@@ -65,11 +64,11 @@ const destroy = (req, res) => {
   findAndDestroyContent(req.params.id)
     .then(result => {
       const statusCode = 200;
-      apiService.sendResponse(res, statusCode, result);
+      sendResponse(res, statusCode, result);
     })
     .catch(errors => {
       const statusCode = ('notFound' in errors) ? 404 : 500;
-      apiService.sendResponse(res, statusCode, errors);
+      sendResponse(res, statusCode, errors);
     });
 };
 

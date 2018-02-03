@@ -1,15 +1,5 @@
 const Content = require(__modelsDir + '/Content');
-const mongoDbService = require(__helpersDir + '/mongoDb');
-
-const setContentValues = (queryParams, content) => {
-  const { title, genre, releaseDate, thumbnail } = queryParams;
-
-  content.title = title;
-  content.genre = genre;
-  content.releaseDate = releaseDate ? Date.parse(releaseDate) : null;
-  content.thumbnail = thumbnail;
-  content.updated = Date.now();
-};
+const { convertMongoErrors, notFoundError } = require(__helpersDir + '/mongoDb');
 
 const getAllContent = async () => {
   let searchResult;
@@ -20,7 +10,7 @@ const getAllContent = async () => {
       searchResult = contents;
     })
     .catch(mongoErrors => {
-      errors = mongoDbService.convertMongoErrors(mongoErrors);
+      errors = convertMongoErrors(mongoErrors);
     });
 
   return new Promise((resolve, reject) => {
@@ -38,11 +28,11 @@ const findContent = async id => {
 
   await Content.findById(id)
     .then(content => {
-      if (!content) errors = notFoundMessage(id);
+      if (!content) errors = notFoundError('Content', id);
       searchResult = content;
     })
     .catch(mongoErrors => {
-      errors = mongoDbService.convertMongoErrors(mongoErrors);
+      errors = convertMongoErrors(mongoErrors);
     });
 
   return new Promise((resolve, reject) => {
@@ -54,6 +44,16 @@ const findContent = async id => {
   });
 };
 
+const setContentValues = (queryParams, content) => {
+  const { title, genre, releaseDate, thumbnail } = queryParams;
+
+  content.title = title;
+  content.genre = genre;
+  content.releaseDate = releaseDate ? Date.parse(releaseDate) : null;
+  content.thumbnail = thumbnail;
+  content.updated = Date.now();
+};
+
 const saveContent = async content => {
   let result;
   let errors;
@@ -63,7 +63,7 @@ const saveContent = async content => {
       result = content;
     })
     .catch(mongoErrors => {
-      errors = mongoDbService.convertMongoErrors(mongoErrors);
+      errors = convertMongoErrors(mongoErrors);
     });
 
   return new Promise((resolve, reject) => {
@@ -82,13 +82,13 @@ const findAndDestroyContent = async id => {
   await Content.findByIdAndRemove(id)
     .then(content => {
       if (!content) {
-        errors = notFoundMessage(id);
+        errors = notFoundError('Content', id);
       } else {
         result = {'message': content.title + ' was deleted.'};
       };
     })
     .catch(mongoErrors => {
-      errors = mongoDbService.convertMongoErrors(mongoErrors);
+      errors = convertMongoErrors(mongoErrors);
     });
 
   return new Promise((resolve, reject) => {
@@ -100,8 +100,4 @@ const findAndDestroyContent = async id => {
   });
 };
 
-const notFoundMessage = id => {
-  return {'notFound': { 'message': 'Content with ID ' + id + ' not found.'}};
-};
-
-module.exports = { setContentValues, getAllContent, findContent, saveContent, findAndDestroyContent };
+module.exports = { getAllContent, findContent, setContentValues, saveContent, findAndDestroyContent };

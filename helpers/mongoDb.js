@@ -8,4 +8,8 @@ const convertMongoErrors = (mongoErrorObject) => {
   return errors;
 };
 
-module.exports = { convertMongoErrors };
+const notFoundError = (modelName, id) => {
+  return {'notFound': { 'message': modelName + ' with ID ' + id + ' not found.'}};
+};
+
+module.exports = { convertMongoErrors, notFoundError };
