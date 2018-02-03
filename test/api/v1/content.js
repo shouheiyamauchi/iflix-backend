@@ -95,6 +95,8 @@ describe('2. Contents Show (GET /:id)', () => {
         .get('/' + randomId)
         .end((err, res) => {
           res.should.have.property('status', 404);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('notFound');
           done();
         });
     });
@@ -105,6 +107,8 @@ describe('2. Contents Show (GET /:id)', () => {
         .expect(200)
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('objectId');
           done();
         });
     });
@@ -141,6 +145,8 @@ describe('3. Contents Create (POST /)', () => {
         .post('?genre=Sci-fi&releaseDate=12-14-2017')
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
           done();
         });
     });
@@ -150,6 +156,8 @@ describe('3. Contents Create (POST /)', () => {
         .post('?title=Star%20Wars&releaseDate=12-14-2017')
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
           done();
         });
     });
@@ -159,6 +167,8 @@ describe('3. Contents Create (POST /)', () => {
         .post('?title=Star%20Wars&genre=Sci-fi')
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
           done();
         });
     });
@@ -168,6 +178,8 @@ describe('3. Contents Create (POST /)', () => {
         .post('?title=Star%20Wars&releaseDate=14-00-2017')
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
           done();
         });
     });
@@ -199,11 +211,32 @@ describe('4. Contents Update (PUT /:id)', () => {
   });
 
   describe('4.2 Unsuccessful requests', () => {
+    it('should give a 404 error for non existent content', function(done) {
+      // generate random mongoose ID
+      let randomId = mongoose.Types.ObjectId();
+
+      // account for very unlikely edge case of randomId ending up to be the same
+      while (this.test.value._id == randomId) {
+        randomId = mongoose.Types.ObjectId();
+      };
+
+      request(contentsApiEndPoint)
+        .put('/' + randomId + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+        .end((err, res) => {
+          res.should.have.property('status', 404);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('notFound');
+          done();
+        });
+    });
+
     it('should give a 500 error for missing title', function(done) {
       request(contentsApiEndPoint)
         .put('/' + this.test.value._id + '?genre=Sci-fi&releaseDate=12-14-2017')
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
           done();
         });
     });
@@ -213,6 +246,8 @@ describe('4. Contents Update (PUT /:id)', () => {
         .put('/' + this.test.value._id + '?title=Star%20Wars&releaseDate=12-14-2017')
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
           done();
         });
     });
@@ -222,6 +257,8 @@ describe('4. Contents Update (PUT /:id)', () => {
         .put('/' + this.test.value._id + '?title=Star%20Wars&genre=Sci-fi')
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
           done();
         });
     });
@@ -231,6 +268,8 @@ describe('4. Contents Update (PUT /:id)', () => {
         .put('/' + this.test.value._id + '?title=Star%20Wars&releaseDate=14-00-2017')
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
           done();
         });
     });
@@ -275,6 +314,8 @@ describe('5. Contents Destroy (DELETE /:id)', () => {
         .delete('/' + randomId)
         .end((err, res) => {
           res.should.have.property('status', 404);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('notFound');
           done();
         });
     });
@@ -284,6 +325,8 @@ describe('5. Contents Destroy (DELETE /:id)', () => {
         .delete('/' + '111')
         .end((err, res) => {
           res.should.have.property('status', 500);
+          const errors = res.body.errors;
+          errors.should.be.an.instanceOf(Object).and.have.property('objectId');
           done();
         });
     });
