@@ -38,7 +38,7 @@ const findContent = async id => {
 
   await Content.findById(id)
     .then(content => {
-      if (!content) errors = {'notFound': { 'message': 'Content with ID ' + id + ' not found.'}};
+      if (!content) errors = notFoundMessage(id);
       searchResult = content;
     })
     .catch(mongoErrors => {
@@ -82,7 +82,7 @@ const findAndDestroyContent = async id => {
   await Content.findByIdAndRemove(id)
     .then(content => {
       if (!content) {
-        errors = {'notFound': { 'message': 'Content with ID ' + id + ' not found.'}};
+        errors = notFoundMessage(id);
       } else {
         result = {'message': content.title + ' was deleted.'};
       };
@@ -98,6 +98,10 @@ const findAndDestroyContent = async id => {
       reject(errors);
     };
   });
+};
+
+const notFoundMessage = id => {
+  return {'notFound': { 'message': 'Content with ID ' + id + ' not found.'}};
 };
 
 module.exports = { setContentValues, getAllContent, findContent, saveContent, findAndDestroyContent };
