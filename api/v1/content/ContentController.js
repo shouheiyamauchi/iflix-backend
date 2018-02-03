@@ -1,5 +1,6 @@
 const Content = require('./contentModel');
 const apiService = require(__services + 'api');
+const mongoDbService = require(__services + 'mongoDb');
 
 const create = (req, res) => {
   const content = new Content();
@@ -17,7 +18,7 @@ const setContentValues = (req, content) => {
 
   content.title = title;
   content.genre = genre;
-  content.releaseDate = Date.parse(releaseDate);
+  if (releaseDate) content.releaseDate = Date.parse(releaseDate);
   content.thumbnail = thumbnail;
   content.updated = Date.now();
 };
@@ -25,8 +26,7 @@ const setContentValues = (req, content) => {
 const saveContentSendRes = (res, content) => {
   content.save((mongoErrors, content) => {
     const statusCode = mongoErrors ? 500 : 200;
-
-    const err = mongoErrors
+    const err = mongoDbService.errorsToArray(mongoErrors);
 
     apiService.sendResponse(res, statusCode, content, err);
   });
