@@ -26,6 +26,8 @@ const saveContentSendRes = (res, content) => {
   content.save((mongoErrors, content) => {
     const statusCode = mongoErrors ? 500 : 200;
 
+    const err = mongoErrors
+
     apiService.sendResponse(res, statusCode, content, err);
   });
 };
