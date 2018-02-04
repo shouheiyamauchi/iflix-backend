@@ -2,30 +2,6 @@ const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
 const { getAllUsers, findUser, setUserValues, saveUser, findAndDestroyUser } = require('./services');
 
-const list = (req, res) => {
-  getAllUsers()
-    .then(users => {
-      const statusCode = 200;
-      sendResponse(res, statusCode, users);
-    })
-    .catch(errors => {
-      const statusCode = 500;
-      sendResponse(res, statusCode, errors);
-    });
-};
-
-const show = (req, res) => {
-  findUser(req.params.id)
-    .then(user => {
-      const statusCode = 200;
-      sendResponse(res, statusCode, user);
-    })
-    .catch(errors => {
-      const statusCode = ('notFound' in errors) ? 404 : 500;
-      sendResponse(res, statusCode, errors);
-    });
-};
-
 const create = (req, res) => {
   const user = new User();
   setUserValues(req.query, user);
@@ -71,4 +47,4 @@ const destroy = (req, res) => {
     });
 };
 
-module.exports = { list, show, create, update, destroy };
+module.exports = { create, update, destroy };
