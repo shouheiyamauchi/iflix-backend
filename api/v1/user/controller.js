@@ -1,6 +1,6 @@
 const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
-const { findUser, setUserValues, saveUser } = require('./services');
+const { findUser, setUserValues, saveUser, findAndDestroyUser } = require('./services');
 
 const show = (req, res) => {
   findUser(req.params.id)
@@ -48,4 +48,16 @@ const update = (req, res) => {
     });
 };
 
-module.exports = { show, create, update };
+const destroy = (req, res) => {
+  findAndDestroyUser(req.params.id)
+    .then(result => {
+      const statusCode = 200;
+      sendResponse(res, statusCode, result);
+    })
+    .catch(errors => {
+      const statusCode = ('notFound' in errors) ? 404 : 500;
+      sendResponse(res, statusCode, errors);
+    });
+};
+
+module.exports = { show, create, update, destroy };

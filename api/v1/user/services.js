@@ -52,4 +52,29 @@ const saveUser = async user => {
   });
 };
 
-module.exports = { findUser, setUserValues, saveUser };
+const findAndDestroyUser = async id => {
+  let result;
+  let errors;
+
+  await User.findByIdAndRemove(id)
+    .then(user => {
+      if (!user) {
+        errors = notFoundError('User', id);
+      } else {
+        result = {'message': user.username + ' was deleted.'};
+      };
+    })
+    .catch(mongoErrors => {
+      errors = convertMongoErrors(mongoErrors);
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(result);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
+module.exports = { findUser, setUserValues, saveUser, findAndDestroyUser };
