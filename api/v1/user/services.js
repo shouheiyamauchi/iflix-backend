@@ -1,5 +1,5 @@
 const User = require(__modelsDir + '/User');
-const { convertMongoErrors, notFoundError } = require(__helpersDir + '/mongoDb');
+const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
 const findUser = async id => {
   let searchResult;
@@ -61,7 +61,7 @@ const findAndDestroyUser = async id => {
       if (!user) {
         errors = notFoundError('User', id);
       } else {
-        result = {'message': user.username + ' was deleted.'};
+        result = deleteResult(user.username);
       };
     })
     .catch(mongoErrors => {

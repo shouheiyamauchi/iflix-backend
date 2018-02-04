@@ -12,4 +12,8 @@ const notFoundError = (modelName, id) => {
   return {'notFound': { 'message': modelName + ' with ID ' + id + ' not found.'}};
 };
 
-module.exports = { convertMongoErrors, notFoundError };
+const deleteResult = value => {
+  return {'message': value + ' was deleted.'};
+};
+
+module.exports = { convertMongoErrors, notFoundError, deleteResult };

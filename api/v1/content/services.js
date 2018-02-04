@@ -1,5 +1,5 @@
 const Content = require(__modelsDir + '/Content');
-const { convertMongoErrors, notFoundError } = require(__helpersDir + '/mongoDb');
+const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
 const getAllContent = async () => {
   let searchResult;
@@ -84,7 +84,7 @@ const findAndDestroyContent = async id => {
       if (!content) {
         errors = notFoundError('Content', id);
       } else {
-        result = {'message': content.title + ' was deleted.'};
+        result = deleteResult(content.title);
       };
     })
     .catch(mongoErrors => {
