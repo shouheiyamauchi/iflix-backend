@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 
 const User = require(__modelsDir + '/User');
 
-const usersApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/users/';
+const usersApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/users';
 
 describe('- api/v1/users', () => {
   // non-fat arrow functions required in areas where values 'this.currentTest.user'
@@ -37,8 +37,8 @@ describe('- api/v1/users', () => {
       it('should be a successful status 200 API call', done => {
         request(usersApiEndPoint)
           .get('/')
-          .expect(200)
           .end(function(err, res) {
+            res.should.have.property('status', 200);
             done();
           });
       });
@@ -46,8 +46,8 @@ describe('- api/v1/users', () => {
       it('should have one result', done => {
         request(usersApiEndPoint)
           .get('/')
-          .expect(200)
           .end(function(err, res) {
+            res.should.have.property('status', 200);
             const usersArray = res.body.data;
             usersArray.should.be.instanceof(Array).and.have.lengthOf(1);
             done();
@@ -103,7 +103,6 @@ describe('- api/v1/users', () => {
       it('should give an error with status 500 for invalid id format', done => {
         request(usersApiEndPoint)
           .get('/' + '111')
-          .expect(200)
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;

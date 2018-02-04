@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 const AllRating = require(__modelsDir + '/AllRating');
 const IndividualRating = require(__modelsDir + '/IndividualRating');
 
-const ratingsApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/ratings/';
+const ratingsApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/ratings';
 
 describe('- api/v1/ratings', () => {
   // non-fat arrow functions required in areas where values 'this.currentTest.individualRating'
@@ -20,10 +20,10 @@ describe('- api/v1/ratings', () => {
         individualRating.userId = mongoose.Types.ObjectId();
         individualRating.stars = 5;
 
-        // can be accessed inside 'it' scope as this.test.individualRating
-        this.currentTest.individualRating = individualRating;
-
         individualRating.save((err, individualRating) => {
+          // can be accessed inside 'it' scope as this.test.individualRating
+          this.currentTest.individualRating = individualRating;
+
           const allRating = new AllRating();
 
           allRating.contentId = individualRating.contentId;
@@ -49,8 +49,234 @@ describe('- api/v1/ratings', () => {
       it('should be a successful status 200 API call', function(done) {
         request(ratingsApiEndPoint)
           .get('/' + this.test.individualRating.contentId)
-          .expect(200)
           .end(function(err, res) {
+            res.should.have.property('status', 200);
+            done();
+          });
+      });
+
+      it('should have an average rating of 5', function(done) {
+        request(ratingsApiEndPoint)
+          .get('/' + this.test.individualRating.contentId)
+          .end(function(err, res) {
+            res.should.have.property('status', 200);
+            const allRating = res.body.data;
+            allRating.should.be.an.instanceOf(Object).and.have.property('average', 5);
+            done();
+          });
+      });
+
+      it('should have only one count of five stars', function(done) {
+        request(ratingsApiEndPoint)
+          .get('/' + this.test.individualRating.contentId)
+          .end(function(err, res) {
+            res.should.have.property('status', 200);
+            const allRating = res.body.data;
+            allRating.should.be.an.instanceOf(Object).and.have.property('oneStarCount', 0);
+            allRating.should.be.an.instanceOf(Object).and.have.property('twoStarsCount', 0);
+            allRating.should.be.an.instanceOf(Object).and.have.property('threeStarsCount', 0);
+            allRating.should.be.an.instanceOf(Object).and.have.property('fourStarsCount', 0);
+            allRating.should.be.an.instanceOf(Object).and.have.property('fiveStarsCount', 1);
+            done();
+          });
+      });
+
+      it('should have only one count of total stars', function(done) {
+        request(ratingsApiEndPoint)
+          .get('/' + this.test.individualRating.contentId)
+          .end(function(err, res) {
+            res.should.have.property('status', 200);
+            const allRating = res.body.data;
+            allRating.should.be.an.instanceOf(Object).and.have.property('totalStarsCount', 1);
+            done();
+          });
+      });
+    });
+
+    describe('1.2 Unsuccessful requests', () => {
+      it('should give an error with status 404 for non existent content', function(done) {
+        // generate random mongoose ID
+        let randomId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomId ending up to be the same
+        while (this.test.individualRating.contentId == randomId) {
+          randomId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .get('/' + randomId)
+          .end((err, res) => {
+            res.should.have.property('status', 404);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('notFound');
+            done();
+          });
+      });
+
+      it('should give an error with status 500 for invalid id format', done => {
+        request(ratingsApiEndPoint)
+          .get('/' + '111')
+          .end((err, res) => {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('objectId');
+            done();
+          });
+      });
+    });
+  });
+
+  describe('2. Ratings Create (POST /)', () => {
+    describe('2.1 Successful requests', () => {
+      it('should be a successful status 200 API call', function(done) {
+        // generate random mongoose ID
+        let randomUserId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomUserId ending up to be the same
+        while (this.test.individualRating.userId == randomUserId) {
+          randomUserId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
+          .end(function(err, res) {
+            res.should.have.property('status', 200);
+            done();
+          });
+      });
+
+      it('should have an average rating of 4', function(done) {
+        // generate random mongoose ID
+        let randomUserId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomUserId ending up to be the same
+        while (this.test.individualRating.userId == randomUserId) {
+          randomUserId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
+          .end(function(err, res) {
+            res.should.have.property('status', 200);
+            const allRating = res.body.data;
+            // 2 ratings of 3 & 5 results in average of 4
+            allRating.should.be.an.instanceOf(Object).and.have.property('average', 4);
+            done();
+          });
+      });
+
+      it('should have one count for each of three and five stars', function(done) {
+        // generate random mongoose ID
+        let randomUserId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomUserId ending up to be the same
+        while (this.test.individualRating.userId == randomUserId) {
+          randomUserId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
+          .end(function(err, res) {
+            res.should.have.property('status', 200);
+            const allRating = res.body.data;
+            allRating.should.be.an.instanceOf(Object).and.have.property('oneStarCount', 0);
+            allRating.should.be.an.instanceOf(Object).and.have.property('twoStarsCount', 0);
+            allRating.should.be.an.instanceOf(Object).and.have.property('threeStarsCount', 1);
+            allRating.should.be.an.instanceOf(Object).and.have.property('fourStarsCount', 0);
+            allRating.should.be.an.instanceOf(Object).and.have.property('fiveStarsCount', 1);
+            done();
+          });
+      });
+
+      it('should have two counts of total stars', function(done) {
+        // generate random mongoose ID
+        let randomUserId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomUserId ending up to be the same
+        while (this.test.individualRating.userId == randomUserId) {
+          randomUserId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
+          .end(function(err, res) {
+            res.should.have.property('status', 200);
+            const allRating = res.body.data;
+            allRating.should.be.an.instanceOf(Object).and.have.property('totalStarsCount', 2);
+            done();
+          });
+      });
+    });
+
+    describe('2.2 Unsuccessful requests', () => {
+      it('should give an error with status 500 for invalid userId format', function(done) {
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + '111' + '&stars=3')
+          .end((err, res) => {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
+            errors.validationErrors.should.be.an.instanceOf(Object).and.have.property('userId');
+            done();
+          });
+      });
+
+      it('should give an error with status 500 for invalid contentId format', function(done) {
+        // generate random mongoose ID
+        let randomUserId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomUserId ending up to be the same
+        while (this.test.individualRating.userId == randomUserId) {
+          randomUserId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + '111' + '&userId=' + randomUserId + '&stars=3')
+          .end((err, res) => {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
+            errors.validationErrors.should.be.an.instanceOf(Object).and.have.property('contentId');
+            done();
+          });
+      });
+
+      it('should give an error with status 500 for missing stars', function(done) {
+        // generate random mongoose ID
+        let randomUserId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomUserId ending up to be the same
+        while (this.test.individualRating.userId == randomUserId) {
+          randomUserId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId)
+          .end((err, res) => {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
+            errors.validationErrors.should.be.an.instanceOf(Object).and.have.property('stars');
+            done();
+          });
+      });
+
+      it('should give an error with status 500 for stars outside range of 1 - 5', function(done) {
+        // generate random mongoose ID
+        let randomUserId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomUserId ending up to be the same
+        while (this.test.individualRating.userId == randomUserId) {
+          randomUserId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=6')
+          .end((err, res) => {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
+            errors.validationErrors.should.be.an.instanceOf(Object).and.have.property('stars');
             done();
           });
       });

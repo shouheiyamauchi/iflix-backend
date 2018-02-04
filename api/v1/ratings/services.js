@@ -16,7 +16,7 @@ const findAllRating = async contentId => {
     })
     .catch(mongoErrors => {
       errors = convertMongoErrors(mongoErrors);
-    })
+    });
 
   return new Promise((resolve, reject) => {
     if (!errors) {

@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 
 const Content = require(__modelsDir + '/Content');
 
-const contentsApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/contents/';
+const contentsApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/contents';
 
 describe('- api/v1/contents', () => {
   // non-fat arrow functions required in areas where values 'this.currentTest.content'
@@ -38,8 +38,8 @@ describe('- api/v1/contents', () => {
       it('should be a successful status 200 API call', done => {
         request(contentsApiEndPoint)
           .get('/')
-          .expect(200)
           .end(function(err, res) {
+            res.should.have.property('status', 200);
             done();
           });
       });
@@ -47,8 +47,8 @@ describe('- api/v1/contents', () => {
       it('should have one result', done => {
         request(contentsApiEndPoint)
           .get('/')
-          .expect(200)
           .end(function(err, res) {
+            res.should.have.property('status', 200);
             const contentsArray = res.body.data;
             contentsArray.should.be.instanceof(Array).and.have.lengthOf(1);
             done();
@@ -104,7 +104,6 @@ describe('- api/v1/contents', () => {
       it('should give an error with status 500 for invalid id format', done => {
         request(contentsApiEndPoint)
           .get('/' + '111')
-          .expect(200)
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
