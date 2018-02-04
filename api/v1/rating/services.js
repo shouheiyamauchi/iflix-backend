@@ -2,6 +2,31 @@ const IndividualRating = require(__modelsDir + '/IndividualRating');
 const AllRating = require(__modelsDir + '/AllRating');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
+const findAllRating = async contentId => {
+  let result;
+  let errors;
+
+  await AllRating.findOne({ contentId: contentId }).exec()
+    .then(allRating => {
+      if (!allRating) {
+        errors = {notFound: {message: 'Ratings for content with ID ' + contentId + ' not found.'}};
+      } else {
+        result = addAverageRatingAttribute(allRating);
+      };
+    })
+    .catch(mongoErrors => {
+      errors = convertMongoErrors(mongoErrors);
+    })
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(result);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
 const setIndividualRatingValues = (queryParams, individualRating) => {
   const { contentId, userId, stars } = queryParams;
 
@@ -11,7 +36,7 @@ const setIndividualRatingValues = (queryParams, individualRating) => {
   individualRating.updated = Date.now();
 };
 
-const saveNewRating = async individualRating => {
+const saveNewRatingUpdateAllRating = async individualRating => {
   let result;
   let errors;
 
@@ -23,7 +48,7 @@ const saveNewRating = async individualRating => {
 
   await Promise.all([individualRatingSavePromise, findAndUpdateAllRatingPromise])
     .then(([individualRating, updatedAllRating]) => {
-      result = updatedAllRating;
+      result = addAverageRatingAttribute(updatedAllRating);
     })
     .catch(mongoErrors => {
       errors = convertMongoErrors(mongoErrors);
@@ -99,4 +124,24 @@ const saveAllRating = async (allRating, individualRating) => {
   });
 };
 
-module.exports = { setIndividualRatingValues, saveNewRating };
+const addAverageRatingAttribute = allRating => {
+  const allRatingObject = allRating.toObject();
+  allRatingObject.average = calculateAverageRating(allRating);
+
+  return allRatingObject;
+};
+
+const calculateAverageRating = allRating => {
+  const totalRating = (
+    1 * allRating.oneStarCount +
+    2 * allRating.twoStarsCount +
+    3 * allRating.threeStarsCount +
+    4 * allRating.fourStarsCount +
+    5 * allRating.fiveStarsCount
+  );
+
+  // round to 1 decimal place
+  return Math.round(totalRating / allRating.totalStarsCount * 10) / 10;
+};
+
+module.exports = { findAllRating, setIndividualRatingValues, saveNewRatingUpdateAllRating };
