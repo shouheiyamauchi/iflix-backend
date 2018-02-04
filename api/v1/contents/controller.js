@@ -43,7 +43,6 @@ const create = (req, res) => {
 
 const update = (req, res) => {
   const findContentPromise = findContent(req.params.id);
-
   const updateContentPromise = findContentPromise.then(content => {
     setContentValues(req.query, content);
     return saveContent(content);

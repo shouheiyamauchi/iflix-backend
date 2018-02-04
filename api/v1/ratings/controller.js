@@ -18,7 +18,6 @@ const create = (req, res) => {
   const individualRating = new IndividualRating();
 
   const setIndividualRatingValuesPromise = setIndividualRatingValues(req.query, individualRating);
-
   const saveNewRatingUpdateAllRatingPromise = setIndividualRatingValuesPromise.then(updatedIndividualRating => {
     return saveNewRatingUpdateAllRating(updatedIndividualRating);
   });

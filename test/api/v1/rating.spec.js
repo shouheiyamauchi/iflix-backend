@@ -240,14 +240,24 @@ describe('- api/v1/ratings', () => {
     });
 
     describe('2.2 Unsuccessful requests', () => {
+      it('should give an error with status 500 for duplicate rating', function(done) {
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.individualRating.userId + '&stars=3')
+          .end((err, res) => {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('alreadyRated');
+            done();
+          });
+      });
+
       it('should give an error with status 500 for invalid userId format', function(done) {
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + '111' + '&stars=3')
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
-            errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
-            errors.validationErrors.should.be.an.instanceOf(Object).and.have.property('userId');
+            errors.should.be.an.instanceOf(Object).and.have.property('objectId');
             done();
           });
       });

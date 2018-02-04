@@ -43,7 +43,6 @@ const create = (req, res) => {
 
 const update = (req, res) => {
   let findUserPromise = findUser(req.params.id);
-
   let updateUserPromise = findUserPromise.then(user => {
     setUserValues(req.query, user);
     return saveUser(user);

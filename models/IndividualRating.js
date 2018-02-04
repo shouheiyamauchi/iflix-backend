@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const SingleRatingSchema = new Schema({
+const IndividualRatingSchema = new Schema({
   contentId: { type: Schema.Types.ObjectId, ref: 'Content', required: true, index: true },
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   stars: {
@@ -19,6 +19,6 @@ const SingleRatingSchema = new Schema({
   updated: { type: Date, default: Date.now, required: true }
 });
 
-mongoose.model('SingleRating', SingleRatingSchema);
+mongoose.model('IndividualRating', IndividualRatingSchema);
 
-module.exports = mongoose.model('SingleRating');
+module.exports = mongoose.model('IndividualRating');

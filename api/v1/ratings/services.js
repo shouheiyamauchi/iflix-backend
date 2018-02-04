@@ -34,18 +34,28 @@ const setIndividualRatingValues = async (queryParams, individualRating) => {
   let result;
   let errors;
 
-  await findContent(contentId)
+  await IndividualRating.where({ contentId: contentId, userId: userId }).exec()
     .then(content => {
-      individualRating.contentId = contentId;
-      individualRating.userId = userId;
-      individualRating.stars = stars;
-      individualRating.updated = Date.now();
+      if (content.length > 0) errors = {alreadyRated: {message: 'User with ID ' + userId + ' has already rated content with ID ' + contentId + '.'}};
+    })
+    .catch(mongoErrors => {
+      errors = convertMongoErrors(mongoErrors);
+    });
 
-      result = individualRating;
-    })
-    .catch(contentErrors => {
-      errors = contentErrors;
-    })
+  if (!errors) {
+    await findContent(contentId)
+      .then(content => {
+        individualRating.contentId = contentId;
+        individualRating.userId = userId;
+        individualRating.stars = stars;
+        individualRating.updated = Date.now();
+
+        result = individualRating;
+      })
+      .catch(contentErrors => {
+        errors = contentErrors;
+      });
+  };
 
   return new Promise((resolve, reject) => {
     if (!errors) {
@@ -61,7 +71,6 @@ const saveNewRatingUpdateAllRating = async individualRating => {
   let errors;
 
   const individualRatingSavePromise = individualRating.save();
-
   const findAndUpdateAllRatingPromise = individualRatingSavePromise.then(individualRating => {
     return findAndUpdateAllRating(individualRating);
   });
@@ -88,7 +97,6 @@ const findAndUpdateAllRating = async individualRating => {
   let errors;
 
   const findAllRatingPromise = AllRating.findOne({ contentId: individualRating.contentId }).exec();
-
   const saveAllRatingPromise = findAllRatingPromise.then(allRating => {
     const allRatingObject = allRating || new AllRating();
     return saveAllRating(allRatingObject, individualRating);
