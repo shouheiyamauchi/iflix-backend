@@ -7,9 +7,9 @@ const User = require(__modelsDir + '/User');
 
 const usersApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/users/';
 
-describe('- api/v1/user', () => {
-  // non-fat arrow functions required in areas where values 'this.currentTest.value'
-  // and 'this.test.value' are shared to get the correct scopes
+describe('- api/v1/users', () => {
+  // non-fat arrow functions required in areas where values 'this.currentTest.user'
+  // and 'this.test.user' are shared to get the correct scopes
   beforeEach(function(done) {
     mongoose.connection.dropDatabase()
       .then(() => {
@@ -18,8 +18,8 @@ describe('- api/v1/user', () => {
         user.password = "password123";
 
         user.save((err, user) => {
-          // can be accessed inside 'it' scope as this.test.value
-          this.currentTest.value = user;
+          // can be accessed inside 'it' scope as this.test.user
+          this.currentTest.user = user;
           done();
         });
       });
@@ -60,7 +60,7 @@ describe('- api/v1/user', () => {
     describe('2.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
-          .get('/' + this.test.value._id)
+          .get('/' + this.test.user._id)
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -69,7 +69,7 @@ describe('- api/v1/user', () => {
 
       it('should be the same user', function(done) {
         request(usersApiEndPoint)
-          .get('/' + this.test.value._id)
+          .get('/' + this.test.user._id)
           .end((err, res) => {
             res.should.have.property('status', 200);
             const user = res.body.data;
@@ -86,7 +86,7 @@ describe('- api/v1/user', () => {
         let randomId = mongoose.Types.ObjectId();
 
         // account for very unlikely edge case of randomId ending up to be the same
-        while (this.test.value._id == randomId) {
+        while (this.test.user._id == randomId) {
           randomId = mongoose.Types.ObjectId();
         };
 
@@ -167,7 +167,7 @@ describe('- api/v1/user', () => {
     describe('4.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
-          .put('/' + this.test.value._id + '?username=movie-lover&password=safepassword')
+          .put('/' + this.test.user._id + '?username=movie-lover&password=safepassword')
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -176,7 +176,7 @@ describe('- api/v1/user', () => {
 
       it('should return the updated user', function(done) {
         request(usersApiEndPoint)
-          .put('/' + this.test.value._id + '?username=movie-lover&password=safepassword')
+          .put('/' + this.test.user._id + '?username=movie-lover&password=safepassword')
           .end((err, res) => {
             res.should.have.property('status', 200);
             const user = res.body.data;
@@ -193,7 +193,7 @@ describe('- api/v1/user', () => {
         let randomId = mongoose.Types.ObjectId();
 
         // account for very unlikely edge case of randomId ending up to be the same
-        while (this.test.value._id == randomId) {
+        while (this.test.user._id == randomId) {
           randomId = mongoose.Types.ObjectId();
         };
 
@@ -209,7 +209,7 @@ describe('- api/v1/user', () => {
 
       it('should give an error with status 500 for missing username', function(done) {
         request(usersApiEndPoint)
-          .put('/' + this.test.value._id + '?password=safepassword')
+          .put('/' + this.test.user._id + '?password=safepassword')
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -220,7 +220,7 @@ describe('- api/v1/user', () => {
 
       it('should give an error with status 500 for missing password', function(done) {
         request(usersApiEndPoint)
-          .put('/' + this.test.value._id + '?username=movie-lover')
+          .put('/' + this.test.user._id + '?username=movie-lover')
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -235,7 +235,7 @@ describe('- api/v1/user', () => {
     describe('5.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
-          .delete('/' + this.test.value._id)
+          .delete('/' + this.test.user._id)
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -244,7 +244,7 @@ describe('- api/v1/user', () => {
 
       it('should remove the user successfully', function(done) {
         request(usersApiEndPoint)
-          .delete('/' + this.test.value._id)
+          .delete('/' + this.test.user._id)
           .end((err, res) => {
             res.should.have.property('status', 200);
             User.find({}, (mongoErrors, users) => {
@@ -261,7 +261,7 @@ describe('- api/v1/user', () => {
         let randomId = mongoose.Types.ObjectId();
 
         // account for very unlikely edge case of randomId ending up to be the same
-        while (this.test.value._id == randomId) {
+        while (this.test.user._id == randomId) {
           randomId = mongoose.Types.ObjectId();
         };
 

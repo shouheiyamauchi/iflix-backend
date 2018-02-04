@@ -7,9 +7,9 @@ const Content = require(__modelsDir + '/Content');
 
 const contentsApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/contents/';
 
-describe('- api/v1/content', () => {
-  // non-fat arrow functions required in areas where values 'this.currentTest.value'
-  // and 'this.test.value' are shared to get the correct scopes
+describe('- api/v1/contents', () => {
+  // non-fat arrow functions required in areas where values 'this.currentTest.content'
+  // and 'this.test.content' are shared to get the correct scopes
   beforeEach(function(done) {
     mongoose.connection.dropDatabase()
       .then(() => {
@@ -19,8 +19,8 @@ describe('- api/v1/content', () => {
         content.releaseDate = Date.parse('12-21-1978');
 
         content.save((err, content) => {
-          // can be accessed inside 'it' scope as this.test.value
-          this.currentTest.value = content;
+          // can be accessed inside 'it' scope as this.test.content
+          this.currentTest.content = content;
           done();
         });
       });
@@ -61,7 +61,7 @@ describe('- api/v1/content', () => {
     describe('2.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(contentsApiEndPoint)
-          .get('/' + this.test.value._id)
+          .get('/' + this.test.content._id)
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -70,7 +70,7 @@ describe('- api/v1/content', () => {
 
       it('should be the same content', function(done) {
         request(contentsApiEndPoint)
-          .get('/' + this.test.value._id)
+          .get('/' + this.test.content._id)
           .end((err, res) => {
             res.should.have.property('status', 200);
             const content = res.body.data;
@@ -87,7 +87,7 @@ describe('- api/v1/content', () => {
         let randomId = mongoose.Types.ObjectId();
 
         // account for very unlikely edge case of randomId ending up to be the same
-        while (this.test.value._id == randomId) {
+        while (this.test.content._id == randomId) {
           randomId = mongoose.Types.ObjectId();
         };
 
@@ -190,7 +190,7 @@ describe('- api/v1/content', () => {
     describe('4.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.value._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -199,7 +199,7 @@ describe('- api/v1/content', () => {
 
       it('should return the updated content', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.value._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
           .end((err, res) => {
             res.should.have.property('status', 200);
             const content = res.body.data;
@@ -216,7 +216,7 @@ describe('- api/v1/content', () => {
         let randomId = mongoose.Types.ObjectId();
 
         // account for very unlikely edge case of randomId ending up to be the same
-        while (this.test.value._id == randomId) {
+        while (this.test.content._id == randomId) {
           randomId = mongoose.Types.ObjectId();
         };
 
@@ -232,7 +232,7 @@ describe('- api/v1/content', () => {
 
       it('should give an error with status 500 for missing title', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.value._id + '?genre=Sci-fi&releaseDate=12-14-2017')
+          .put('/' + this.test.content._id + '?genre=Sci-fi&releaseDate=12-14-2017')
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -243,7 +243,7 @@ describe('- api/v1/content', () => {
 
       it('should give an error with status 500 for missing genre', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.value._id + '?title=Star%20Wars&releaseDate=12-14-2017')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&releaseDate=12-14-2017')
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -254,7 +254,7 @@ describe('- api/v1/content', () => {
 
       it('should give an error with status 500 for missing release date', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.value._id + '?title=Star%20Wars&genre=Sci-fi')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi')
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -265,7 +265,7 @@ describe('- api/v1/content', () => {
 
       it('should give an error with status 500 for invalid release date format', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.value._id + '?title=Star%20Wars&releaseDate=14-00-2017')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&releaseDate=14-00-2017')
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -280,7 +280,7 @@ describe('- api/v1/content', () => {
     describe('5.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(contentsApiEndPoint)
-          .delete('/' + this.test.value._id)
+          .delete('/' + this.test.content._id)
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -289,7 +289,7 @@ describe('- api/v1/content', () => {
 
       it('should remove the content successfully', function(done) {
         request(contentsApiEndPoint)
-          .delete('/' + this.test.value._id)
+          .delete('/' + this.test.content._id)
           .end((err, res) => {
             res.should.have.property('status', 200);
             Content.find({}, (mongoErrors, contents) => {
@@ -306,7 +306,7 @@ describe('- api/v1/content', () => {
         let randomId = mongoose.Types.ObjectId();
 
         // account for very unlikely edge case of randomId ending up to be the same
-        while (this.test.value._id == randomId) {
+        while (this.test.content._id == randomId) {
           randomId = mongoose.Types.ObjectId();
         };
 
