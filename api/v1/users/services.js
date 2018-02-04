@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const User = require(__modelsDir + '/User');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
@@ -31,7 +32,7 @@ const saveUser = async user => {
 };
 
 findUserByUsernamePassword = async queryParams => {
-  let searchResult;
+  let result;
   let errors;
 
   if (!queryParams.username || !queryParams.password) {
@@ -42,8 +43,14 @@ findUserByUsernamePassword = async queryParams => {
   } else {
     await User.findOne({ username: queryParams.username, password: queryParams.password }).exec()
       .then(user => {
-        if (!user) errors = {'notFound': { 'message': 'Username and the password entered did not match any records.'}};
-        searchResult = user;
+        if (!user) {
+          errors = {'notFound': { 'message': 'Username and the password entered did not match any records.'}};
+        } else {
+          const payload = {id: user._id};
+          const token = jwt.sign(payload, process.env.JWT_SECRET);
+          // add roles to User model
+          result = { userId: user._id, userRole: 'user', token };
+        };
       })
       .catch(mongoErrors => {
         errors = convertMongoErrors(mongoErrors);
@@ -52,7 +59,7 @@ findUserByUsernamePassword = async queryParams => {
 
   return new Promise((resolve, reject) => {
     if (!errors) {
-      resolve(searchResult);
+      resolve(result);
     } else {
       reject(errors);
     };
