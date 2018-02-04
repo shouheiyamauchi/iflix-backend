@@ -2,10 +2,12 @@ const app = require('../../../index');
 const request = require('supertest');
 const should = require('should');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 const AllRating = require(__modelsDir + '/AllRating');
 const IndividualRating = require(__modelsDir + '/IndividualRating');
 const Content = require(__modelsDir + '/Content');
+const User = require(__modelsDir + '/User');
 
 const ratingsApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/ratings';
 
@@ -24,25 +26,38 @@ describe('- api/v1/ratings', () => {
           // can be accessed inside 'it' scope as this.test.content
           this.currentTest.content = content;
 
-          const individualRating = new IndividualRating();
+          const user = new User();
+          user.username = "iflix-user";
+          user.password = "password123";
 
-          individualRating.contentId = content._id;
-          individualRating.userId = mongoose.Types.ObjectId();
-          individualRating.stars = 5;
+          user.save((err, user) => {
+            // can be accessed inside 'it' scope as this.test.user
+            this.currentTest.user = user;
 
-          individualRating.save((err, individualRating) => {
-            // can be accessed inside 'it' scope as this.test.individualRating
-            this.currentTest.individualRating = individualRating;
+            const payload = {id: user._id};
+            // can be accessed inside 'it' scope as this.test.userToken
+            this.currentTest.userToken = jwt.sign(payload, process.env.JWT_SECRET);
 
-            const allRating = new AllRating();
+            const individualRating = new IndividualRating();
 
-            allRating.contentId = individualRating.contentId;
-            allRating.fiveStarsCount++;
-            allRating.totalStarsCount++;
-            allRating.average = individualRating.stars;
+            individualRating.contentId = content._id;
+            individualRating.userId = mongoose.Types.ObjectId();
+            individualRating.stars = 5;
 
-            allRating.save((err, allRating) => {
-              done();
+            individualRating.save((err, individualRating) => {
+              // can be accessed inside 'it' scope as this.test.individualRating
+              this.currentTest.individualRating = individualRating;
+
+              const allRating = new AllRating();
+
+              allRating.contentId = individualRating.contentId;
+              allRating.fiveStarsCount++;
+              allRating.totalStarsCount++;
+              allRating.average = individualRating.stars;
+
+              allRating.save((err, allRating) => {
+                done();
+              });
             });
           });
         });
@@ -151,6 +166,7 @@ describe('- api/v1/ratings', () => {
 
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             done();
@@ -166,6 +182,7 @@ describe('- api/v1/ratings', () => {
         content.save((err, content) => {
           request(ratingsApiEndPoint)
             .post('?contentId=' + content._id + '&userId=' + this.test.individualRating.userId + '&stars=3')
+            .set({'Authorization': 'JWT ' + this.test.userToken})
             .end(function(err, res) {
               res.should.have.property('status', 200);
               const allRating = res.body.data;
@@ -187,6 +204,7 @@ describe('- api/v1/ratings', () => {
 
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
@@ -207,6 +225,7 @@ describe('- api/v1/ratings', () => {
 
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
@@ -230,6 +249,7 @@ describe('- api/v1/ratings', () => {
 
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
@@ -243,6 +263,7 @@ describe('- api/v1/ratings', () => {
       it('should give an error with status 500 for duplicate rating', function(done) {
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.individualRating.userId + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -254,6 +275,7 @@ describe('- api/v1/ratings', () => {
       it('should give an error with status 500 for invalid userId format', function(done) {
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + '111' + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -273,6 +295,7 @@ describe('- api/v1/ratings', () => {
 
         request(ratingsApiEndPoint)
           .post('?contentId=' + '111' + '&userId=' + randomUserId + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -292,6 +315,7 @@ describe('- api/v1/ratings', () => {
 
         request(ratingsApiEndPoint)
           .post('?contentId=' + contentUserId + '&userId=' + this.test.individualRating.userId + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 404);
             const errors = res.body.errors;
@@ -311,6 +335,7 @@ describe('- api/v1/ratings', () => {
 
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId)
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -331,6 +356,7 @@ describe('- api/v1/ratings', () => {
 
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=6')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;

@@ -2,6 +2,7 @@ const app = require('../../../index');
 const request = require('supertest');
 const should = require('should');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 const User = require(__modelsDir + '/User');
 
@@ -20,6 +21,11 @@ describe('- api/v1/users', () => {
         user.save((err, user) => {
           // can be accessed inside 'it' scope as this.test.user
           this.currentTest.user = user;
+
+          const payload = {id: user._id};
+          // can be accessed inside 'it' scope as this.test.userToken
+          this.currentTest.userToken = jwt.sign(payload, process.env.JWT_SECRET);
+
           done();
         });
       });
@@ -86,6 +92,7 @@ describe('- api/v1/users', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
           .put('/' + this.test.user._id + '?username=movie-lover&password=safepassword')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -95,6 +102,7 @@ describe('- api/v1/users', () => {
       it('should return the updated user', function(done) {
         request(usersApiEndPoint)
           .put('/' + this.test.user._id + '?username=movie-lover&password=safepassword')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             const user = res.body.data;
@@ -117,6 +125,7 @@ describe('- api/v1/users', () => {
 
         request(usersApiEndPoint)
           .put('/' + randomId + '?username=movie-lover&password=safepassword')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 404);
             const errors = res.body.errors;
@@ -128,6 +137,7 @@ describe('- api/v1/users', () => {
       it('should give an error with status 500 for missing username', function(done) {
         request(usersApiEndPoint)
           .put('/' + this.test.user._id + '?password=safepassword')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -139,6 +149,7 @@ describe('- api/v1/users', () => {
       it('should give an error with status 500 for missing password', function(done) {
         request(usersApiEndPoint)
           .put('/' + this.test.user._id + '?username=movie-lover')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
