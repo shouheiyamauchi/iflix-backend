@@ -1,7 +1,7 @@
 const Content = require(__modelsDir + '/Content');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
-const getAllContent = async () => {
+const getAllContents = async () => {
   let searchResult;
   let errors;
 
@@ -100,4 +100,4 @@ const findAndDestroyContent = async id => {
   });
 };
 
-module.exports = { getAllContent, findContent, setContentValues, saveContent, findAndDestroyContent };
+module.exports = { getAllContents, findContent, setContentValues, saveContent, findAndDestroyContent };

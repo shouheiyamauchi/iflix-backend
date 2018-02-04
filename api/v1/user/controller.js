@@ -1,6 +1,18 @@
 const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
-const { findUser, setUserValues, saveUser, findAndDestroyUser } = require('./services');
+const { getAllUsers, findUser, setUserValues, saveUser, findAndDestroyUser } = require('./services');
+
+const list = (req, res) => {
+  getAllUsers()
+    .then(users => {
+      const statusCode = 200;
+      sendResponse(res, statusCode, users);
+    })
+    .catch(errors => {
+      const statusCode = 500;
+      sendResponse(res, statusCode, errors);
+    });
+};
 
 const show = (req, res) => {
   findUser(req.params.id)
@@ -60,4 +72,4 @@ const destroy = (req, res) => {
     });
 };
 
-module.exports = { show, create, update, destroy };
+module.exports = { list, show, create, update, destroy };

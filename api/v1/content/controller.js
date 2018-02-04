@@ -1,9 +1,9 @@
 const Content = require(__modelsDir + '/Content');
 const { sendResponse } = require(__helpersDir + '/api');
-const { getAllContent, findContent, setContentValues, saveContent, findAndDestroyContent } = require('./services');
+const { getAllContents, findContent, setContentValues, saveContent, findAndDestroyContent } = require('./services');
 
 const list = (req, res) => {
-  getAllContent()
+  getAllContents()
     .then(contents => {
       const statusCode = 200;
       sendResponse(res, statusCode, contents);

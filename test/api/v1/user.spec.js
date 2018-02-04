@@ -32,8 +32,32 @@ describe('- api/v1/user', () => {
       });
   });
 
-  describe('1. Users Show (GET /:id)', () => {
+  describe('1. Users Index (GET /)', () => {
     describe('1.1 Successful requests', () => {
+      it('should be a successful status 200 API call', done => {
+        request(usersApiEndPoint)
+          .get('/')
+          .expect(200)
+          .end(function(err, res) {
+            done();
+          });
+      });
+
+      it('should have one result', done => {
+        request(usersApiEndPoint)
+          .get('/')
+          .expect(200)
+          .end(function(err, res) {
+            const usersArray = res.body.data;
+            usersArray.should.be.instanceof(Array).and.have.lengthOf(1);
+            done();
+          });
+      });
+    });
+  });
+
+  describe('2. Users Show (GET /:id)', () => {
+    describe('2.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
           .get('/' + this.test.value._id)
@@ -56,7 +80,7 @@ describe('- api/v1/user', () => {
       });
     });
 
-    describe('1.2 Unsuccessful requests', () => {
+    describe('2.2 Unsuccessful requests', () => {
       it('should give an error with status 404 for non existent user', function(done) {
         // generate random mongoose ID
         let randomId = mongoose.Types.ObjectId();
@@ -90,8 +114,8 @@ describe('- api/v1/user', () => {
     });
   });
 
-  describe('2. Users Create (POST /)', () => {
-    describe('2.1 Successful requests', () => {
+  describe('3. Users Create (POST /)', () => {
+    describe('3.1 Successful requests', () => {
       it('should be a successful status 200 API call', done => {
         request(usersApiEndPoint)
           .post('?username=movie-lover&password=safepassword')
@@ -114,7 +138,7 @@ describe('- api/v1/user', () => {
       });
     });
 
-    describe('2.2 Unsuccessful requests', () => {
+    describe('3.2 Unsuccessful requests', () => {
       it('should give an error with status 500 for missing username', done => {
         request(usersApiEndPoint)
           .post('?password=safepassword')
@@ -139,8 +163,8 @@ describe('- api/v1/user', () => {
     });
   });
 
-  describe('3. Users Update (PUT /:id)', () => {
-    describe('3.1 Successful requests', () => {
+  describe('4. Users Update (PUT /:id)', () => {
+    describe('4.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
           .put('/' + this.test.value._id + '?username=movie-lover&password=safepassword')
@@ -163,7 +187,7 @@ describe('- api/v1/user', () => {
       });
     });
 
-    describe('3.2 Unsuccessful requests', () => {
+    describe('4.2 Unsuccessful requests', () => {
       it('should give an error with status 404 for non existent user', function(done) {
         // generate random mongoose ID
         let randomId = mongoose.Types.ObjectId();
@@ -207,8 +231,8 @@ describe('- api/v1/user', () => {
     });
   });
 
-  describe('4. Users Destroy (DELETE /:id)', () => {
-    describe('4.1 Successful requests', () => {
+  describe('5. Users Destroy (DELETE /:id)', () => {
+    describe('5.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
           .delete('/' + this.test.value._id)
@@ -231,7 +255,7 @@ describe('- api/v1/user', () => {
       });
     });
 
-    describe('4.2 Unsuccessful requests', () => {
+    describe('5.2 Unsuccessful requests', () => {
       it('should give an error with status 404 for non existent user', function(done) {
         // generate random mongoose ID
         let randomId = mongoose.Types.ObjectId();

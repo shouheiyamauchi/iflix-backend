@@ -1,6 +1,27 @@
 const User = require(__modelsDir + '/User');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
+const getAllUsers = async () => {
+  let searchResult;
+  let errors;
+
+  await User.find({})
+    .then(users => {
+      searchResult = users;
+    })
+    .catch(mongoErrors => {
+      errors = convertMongoErrors(mongoErrors);
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(searchResult);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
 const findUser = async id => {
   let searchResult;
   let errors;
@@ -77,4 +98,4 @@ const findAndDestroyUser = async id => {
   });
 };
 
-module.exports = { findUser, setUserValues, saveUser, findAndDestroyUser };
+module.exports = { getAllUsers, findUser, setUserValues, saveUser, findAndDestroyUser };
