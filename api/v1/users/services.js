@@ -2,6 +2,23 @@ const jwt = require('jsonwebtoken');
 const User = require(__modelsDir + '/User');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
+checkDuplicatUsername = async username => {
+  let errors;
+
+  await User.findOne({ username }).exec()
+    .then(user => {
+      if (user) errors = {'duplicateUsername': { 'message': 'That username is already taken.' }};
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(null);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
 const setUserValues = (queryParams, user) => {
   const { username, password } = queryParams;
 
@@ -31,7 +48,7 @@ const saveUser = async user => {
   });
 };
 
-findUserByUsernamePassword = async queryParams => {
+matchUsernamePassword = async queryParams => {
   let result;
   let errors;
 
@@ -113,4 +130,4 @@ const findAndDestroyUser = async id => {
   });
 };
 
-module.exports = { setUserValues, saveUser, findUserByUsernamePassword, findUserById, findAndDestroyUser };
+module.exports = { checkDuplicatUsername, setUserValues, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser };

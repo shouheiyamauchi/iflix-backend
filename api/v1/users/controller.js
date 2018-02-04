@@ -1,24 +1,31 @@
 const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
-const { setUserValues, saveUser, findUserByUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
+const { checkDuplicatUsername, setUserValues, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
 
 const signup = (req, res) => {
-  const user = new User();
-  setUserValues(req.query, user);
+  checkDuplicatUsername(req.query.username)
+    .then(() => {
+      const user = new User();
+      setUserValues(req.query, user);
 
-  saveUser(user)
-    .then(user => {
-      const statusCode = 200;
-      sendResponse(res, statusCode, user);
+      saveUser(user)
+        .then(user => {
+          const statusCode = 200;
+          sendResponse(res, statusCode, user);
+        })
+        .catch(errors => {
+          const statusCode = 500;
+          sendResponse(res, statusCode, errors);
+        });
     })
-    .catch(errors => {
-      const statusCode = 500;
-      sendResponse(res, statusCode, errors);
+    .catch(duplicateUserError => {
+      const statusCode = 409;
+      sendResponse(res, statusCode, duplicateUserError);
     });
 };
 
 const login = (req, res) => {
-  findUserByUsernamePassword(req.query)
+  matchUsernamePassword(req.query)
     .then(userIdAndToken => {
       const statusCode = 200;
       sendResponse(res, statusCode, userIdAndToken);

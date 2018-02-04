@@ -1,11 +1,11 @@
 const express = require('express');
-const auth = require(__middlewareDir + '/auth');
+const { passport, checkAuthHeaderIdMatch } = require(__middlewareDir + '/auth');
 const ratingController = require('./controller');
 
 const router = express.Router();
-router.use(auth.initialize());
+router.use(passport.initialize());
 
 router.get('/:id', ratingController.show);
-router.post('/', auth.authenticate('jwt', { session: false }), ratingController.create);
+router.post('/', passport.authenticate('jwt', { session: false }), checkAuthHeaderIdMatch, ratingController.create);
 
 module.exports = router;

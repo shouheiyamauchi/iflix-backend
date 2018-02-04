@@ -84,6 +84,17 @@ describe('- api/v1/users', () => {
             done();
           });
       });
+
+      it('should give an error with status 409 for username which already exists', done => {
+        request(usersApiEndPoint)
+          .post('/signup?username=iflix-user&password=someotherpassword')
+          .end((err, res) => {
+            res.should.have.property('status', 409);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('duplicateUsername');
+            done();
+          });
+      });
     });
   });
 
@@ -114,7 +125,7 @@ describe('- api/v1/users', () => {
     });
 
     describe('2.2 Unsuccessful requests', () => {
-      it('should give an error with status 404 for non existent user', function(done) {
+      it('should give an error with status 401 for unmatching token userId and params userId', function(done) {
         // generate random mongoose ID
         let randomId = mongoose.Types.ObjectId();
 
@@ -127,9 +138,9 @@ describe('- api/v1/users', () => {
           .put('/' + randomId + '?username=movie-lover&password=safepassword')
           .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
-            res.should.have.property('status', 404);
+            res.should.have.property('status', 401);
             const errors = res.body.errors;
-            errors.should.be.an.instanceOf(Object).and.have.property('notFound');
+            errors.should.be.an.instanceOf(Object).and.have.property('unauthorized');
             done();
           });
       });
