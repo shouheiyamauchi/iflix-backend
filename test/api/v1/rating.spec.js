@@ -41,7 +41,7 @@ describe('- api/v1/ratings', () => {
             const individualRating = new IndividualRating();
 
             individualRating.contentId = content._id;
-            individualRating.userId = mongoose.Types.ObjectId();
+            individualRating.userId = user._id;
             individualRating.stars = 5;
 
             individualRating.save((err, individualRating) => {
@@ -154,19 +154,29 @@ describe('- api/v1/ratings', () => {
   });
 
   describe('2. Ratings Create (POST /)', () => {
+    beforeEach(function(done) {
+      // create new user for second rating
+      const user = new User();
+      user.username = "iflix-anotherUser";
+      user.password = "password123";
+
+      user.save((err, user) => {
+        // can be accessed inside 'it' scope as this.test.user
+        this.currentTest.anotherUser = user;
+
+        const payload = {id: user._id};
+        // can be accessed inside 'it' scope as this.test.userToken
+        this.currentTest.anotherUserToken = jwt.sign(payload, process.env.JWT_SECRET);
+
+        done();
+      });
+    });
+
     describe('2.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
-        // generate random mongoose ID
-        let randomUserId = mongoose.Types.ObjectId();
-
-        // account for very unlikely edge case of randomUserId ending up to be the same
-        while (this.test.individualRating.userId == randomUserId) {
-          randomUserId = mongoose.Types.ObjectId();
-        };
-
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
-          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             done();
@@ -181,7 +191,7 @@ describe('- api/v1/ratings', () => {
 
         content.save((err, content) => {
           request(ratingsApiEndPoint)
-            .post('?contentId=' + content._id + '&userId=' + this.test.individualRating.userId + '&stars=3')
+            .post('?contentId=' + content._id + '&userId=' + this.test.user._id + '&stars=3')
             .set({'Authorization': 'JWT ' + this.test.userToken})
             .end(function(err, res) {
               res.should.have.property('status', 200);
@@ -194,17 +204,9 @@ describe('- api/v1/ratings', () => {
       });
 
       it('should have an average rating of 4', function(done) {
-        // generate random mongoose ID
-        let randomUserId = mongoose.Types.ObjectId();
-
-        // account for very unlikely edge case of randomUserId ending up to be the same
-        while (this.test.individualRating.userId == randomUserId) {
-          randomUserId = mongoose.Types.ObjectId();
-        };
-
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
-          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
@@ -215,17 +217,9 @@ describe('- api/v1/ratings', () => {
       });
 
       it('should have one count for each of three and five stars', function(done) {
-        // generate random mongoose ID
-        let randomUserId = mongoose.Types.ObjectId();
-
-        // account for very unlikely edge case of randomUserId ending up to be the same
-        while (this.test.individualRating.userId == randomUserId) {
-          randomUserId = mongoose.Types.ObjectId();
-        };
-
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
-          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
@@ -239,17 +233,9 @@ describe('- api/v1/ratings', () => {
       });
 
       it('should have two counts of total stars', function(done) {
-        // generate random mongoose ID
-        let randomUserId = mongoose.Types.ObjectId();
-
-        // account for very unlikely edge case of randomUserId ending up to be the same
-        while (this.test.individualRating.userId == randomUserId) {
-          randomUserId = mongoose.Types.ObjectId();
-        };
-
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
-          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
@@ -262,7 +248,7 @@ describe('- api/v1/ratings', () => {
     describe('2.2 Unsuccessful requests', () => {
       it('should give an error with status 500 for duplicate rating', function(done) {
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.individualRating.userId + '&stars=3')
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.user._id + '&stars=3')
           .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
@@ -272,30 +258,31 @@ describe('- api/v1/ratings', () => {
           });
       });
 
-      it('should give an error with status 500 for invalid userId format', function(done) {
+      it('should give an error with status 401 for unmatching token userId and params userId', function(done) {
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + '111' + '&stars=3')
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=3')
           .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
-            res.should.have.property('status', 500);
+            res.should.have.property('status', 401);
             const errors = res.body.errors;
-            errors.should.be.an.instanceOf(Object).and.have.property('objectId');
+            errors.should.be.an.instanceOf(Object).and.have.property('unauthorized');
+            done();
+          });
+      });
+
+      it('should give an error with status 401 for missing Authorization header', function(done) {
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=3')
+          .end((err, res) => {
+            res.should.have.property('status', 401);
             done();
           });
       });
 
       it('should give an error with status 500 for invalid contentId format', function(done) {
-        // generate random mongoose ID
-        let randomUserId = mongoose.Types.ObjectId();
-
-        // account for very unlikely edge case of randomUserId ending up to be the same
-        while (this.test.individualRating.userId == randomUserId) {
-          randomUserId = mongoose.Types.ObjectId();
-        };
-
         request(ratingsApiEndPoint)
-          .post('?contentId=' + '111' + '&userId=' + randomUserId + '&stars=3')
-          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .post('?contentId=' + '111' + '&userId=' + this.test.anotherUser._id + '&stars=3')
+          .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -306,15 +293,15 @@ describe('- api/v1/ratings', () => {
 
       it('should give an error with status 404 for non existent contentId', function(done) {
         // generate random mongoose ID
-        let contentUserId = mongoose.Types.ObjectId();
+        let contentId = mongoose.Types.ObjectId();
 
-        // account for very unlikely edge case of contentUserId ending up to be the same
-        while (this.test.individualRating.contentId == contentUserId) {
-          contentUserId = mongoose.Types.ObjectId();
+        // account for very unlikely edge case of contentId ending up to be the same
+        while (this.test.individualRating.contentId == contentId) {
+          contentId = mongoose.Types.ObjectId();
         };
 
         request(ratingsApiEndPoint)
-          .post('?contentId=' + contentUserId + '&userId=' + this.test.individualRating.userId + '&stars=3')
+          .post('?contentId=' + contentId + '&userId=' + this.test.user._id + '&stars=3')
           .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 404);
@@ -325,17 +312,9 @@ describe('- api/v1/ratings', () => {
       });
 
       it('should give an error with status 500 for missing stars', function(done) {
-        // generate random mongoose ID
-        let randomUserId = mongoose.Types.ObjectId();
-
-        // account for very unlikely edge case of randomUserId ending up to be the same
-        while (this.test.individualRating.userId == randomUserId) {
-          randomUserId = mongoose.Types.ObjectId();
-        };
-
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId)
-          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id)
+          .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -346,17 +325,9 @@ describe('- api/v1/ratings', () => {
       });
 
       it('should give an error with status 500 for stars outside range of 1 - 5', function(done) {
-        // generate random mongoose ID
-        let randomUserId = mongoose.Types.ObjectId();
-
-        // account for very unlikely edge case of randomUserId ending up to be the same
-        while (this.test.individualRating.userId == randomUserId) {
-          randomUserId = mongoose.Types.ObjectId();
-        };
-
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=6')
-          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=6')
+          .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
