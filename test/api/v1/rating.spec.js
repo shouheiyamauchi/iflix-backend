@@ -29,6 +29,7 @@ describe('- api/v1/ratings', () => {
           allRating.contentId = individualRating.contentId;
           allRating.fiveStarsCount++;
           allRating.totalStarsCount++;
+          allRating.average = individualRating.stars;
 
           allRating.save((err, allRating) => {
             done();
@@ -141,6 +142,26 @@ describe('- api/v1/ratings', () => {
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + randomUserId + '&stars=3')
           .end(function(err, res) {
             res.should.have.property('status', 200);
+            done();
+          });
+      });
+
+      it('should have correct average rating on first create', function(done) {
+        // generate random mongoose ID
+        let randomContentId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomContentId ending up to be the same
+        while (this.test.individualRating.contentId == randomContentId) {
+          randomContentId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + randomContentId + '&userId=' + this.test.individualRating.userId + '&stars=3')
+          .end(function(err, res) {
+            res.should.have.property('status', 200);
+            const allRating = res.body.data;
+            // 2 ratings of 3 & 5 results in average of 4
+            allRating.should.be.an.instanceOf(Object).and.have.property('average', 3);
             done();
           });
       });

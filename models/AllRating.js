@@ -20,6 +20,7 @@ const AllRatingSchema = new Schema({
   fourStarsCount: starsCountSchemaAttributes,
   fiveStarsCount: starsCountSchemaAttributes,
   totalStarsCount: starsCountSchemaAttributes,
+  average: { type: Number, min: 1, max: 5, required: true },
   created: { type: Date, default: Date.now, required: true },
   updated: { type: Date, default: Date.now, required: true }
 });

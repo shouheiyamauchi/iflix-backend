@@ -11,7 +11,7 @@ const findAllRating = async contentId => {
       if (!allRating) {
         errors = {notFound: {message: 'Ratings for content with ID ' + contentId + ' not found.'}};
       } else {
-        result = addAverageRatingAttribute(allRating);
+        result = allRating;
       };
     })
     .catch(mongoErrors => {
@@ -48,7 +48,7 @@ const saveNewRatingUpdateAllRating = async individualRating => {
 
   await Promise.all([individualRatingSavePromise, findAndUpdateAllRatingPromise])
     .then(([individualRating, updatedAllRating]) => {
-      result = addAverageRatingAttribute(updatedAllRating);
+      result = updatedAllRating;
     })
     .catch(mongoErrors => {
       errors = convertMongoErrors(mongoErrors);
@@ -106,6 +106,7 @@ const saveAllRating = async (allRating, individualRating) => {
   allRating.contentId = individualRating.contentId;
   allRating[starsCountToIncrease]++;
   allRating.totalStarsCount++;
+  allRating.average = calculateAverageRating(allRating);
 
   await allRating.save()
     .then(allRating => {
@@ -122,13 +123,6 @@ const saveAllRating = async (allRating, individualRating) => {
       reject(errors);
     };
   });
-};
-
-const addAverageRatingAttribute = allRating => {
-  const allRatingObject = allRating.toObject();
-  allRatingObject.average = calculateAverageRating(allRating);
-
-  return allRatingObject;
 };
 
 const calculateAverageRating = allRating => {

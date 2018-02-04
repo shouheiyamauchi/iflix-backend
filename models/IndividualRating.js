@@ -7,13 +7,13 @@ const SingleRatingSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   stars: {
     type: Number,
-    required: true,
     min: 1,
     max: 5,
     validate : {
       validator : Number.isInteger,
       message   : '{VALUE} must be an integer'
-    }
+    },
+    required: true
   },
   created: { type: Date, default: Date.now, required: true },
   updated: { type: Date, default: Date.now, required: true }
