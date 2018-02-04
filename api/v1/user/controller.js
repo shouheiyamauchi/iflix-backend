@@ -2,6 +2,18 @@ const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
 const { findUser, setUserValues, saveUser } = require('./services');
 
+const show = (req, res) => {
+  findUser(req.params.id)
+    .then(user => {
+      const statusCode = 200;
+      sendResponse(res, statusCode, user);
+    })
+    .catch(errors => {
+      const statusCode = ('notFound' in errors) ? 404 : 500;
+      sendResponse(res, statusCode, errors);
+    });
+};
+
 const create = (req, res) => {
   const user = new User();
   setUserValues(req.query, user);
@@ -36,4 +48,4 @@ const update = (req, res) => {
     });
 };
 
-module.exports = { create, update };
+module.exports = { show, create, update };
