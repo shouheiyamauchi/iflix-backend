@@ -1,8 +1,8 @@
 const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
-const { getAllUsers, findUser, setUserValues, saveUser, findAndDestroyUser } = require('./services');
+const { setUserValues, saveUser, findUserByUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
 
-const create = (req, res) => {
+const signup = (req, res) => {
   const user = new User();
   setUserValues(req.query, user);
 
@@ -17,14 +17,26 @@ const create = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  findUserByUsernamePassword(req.query)
+    .then(userIdAndToken => {
+      const statusCode = 200;
+      sendResponse(res, statusCode, userIdAndToken);
+    })
+    .catch(errors => {
+      const statusCode = ('notFound' in errors) ? 404 : 500;
+      sendResponse(res, statusCode, errors);
+    });
+};
+
 const update = (req, res) => {
-  let findUserPromise = findUser(req.params.id);
-  let updateUserPromise = findUserPromise.then(user => {
+  let findUserByIdPromise = findUserById(req.params.id);
+  let updateUserPromise = findUserByIdPromise.then(user => {
     setUserValues(req.query, user);
     return saveUser(user);
   });
 
-  Promise.all([findUserPromise, updateUserPromise])
+  Promise.all([findUserByIdPromise, updateUserPromise])
     .then(([foundUser, updatedUser]) => {
       const statusCode = 200;
       sendResponse(res, statusCode, updatedUser);
@@ -47,4 +59,4 @@ const destroy = (req, res) => {
     });
 };
 
-module.exports = { create, update, destroy };
+module.exports = { signup, login, update, destroy };

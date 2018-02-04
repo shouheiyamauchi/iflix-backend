@@ -34,9 +34,9 @@ const setIndividualRatingValues = async (queryParams, individualRating) => {
   let result;
   let errors;
 
-  await IndividualRating.where({ contentId: contentId, userId: userId }).exec()
+  await IndividualRating.findOne({ contentId: contentId, userId: userId }).exec()
     .then(content => {
-      if (content.length > 0) errors = {alreadyRated: {message: 'User with ID ' + userId + ' has already rated content with ID ' + contentId + '.'}};
+      if (content) errors = {alreadyRated: {message: 'User with ID ' + userId + ' has already rated content with ID ' + contentId + '.'}};
     })
     .catch(mongoErrors => {
       errors = convertMongoErrors(mongoErrors);

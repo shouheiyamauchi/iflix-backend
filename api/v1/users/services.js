@@ -1,28 +1,6 @@
 const User = require(__modelsDir + '/User');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
-const findUser = async id => {
-  let searchResult;
-  let errors;
-
-  await User.findById(id)
-    .then(user => {
-      if (!user) errors = notFoundError('User', id);
-      searchResult = user;
-    })
-    .catch(mongoErrors => {
-      errors = convertMongoErrors(mongoErrors);
-    });
-
-  return new Promise((resolve, reject) => {
-    if (!errors) {
-      resolve(searchResult);
-    } else {
-      reject(errors);
-    };
-  });
-};
-
 const setUserValues = (queryParams, user) => {
   const { username, password } = queryParams;
 
@@ -46,6 +24,57 @@ const saveUser = async user => {
   return new Promise((resolve, reject) => {
     if (!errors) {
       resolve(result);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
+findUserByUsernamePassword = async queryParams => {
+  let searchResult;
+  let errors;
+
+  if (!queryParams.username || !queryParams.password) {
+    errors = {};
+
+    if (!queryParams.username) errors.usernameMissing = { 'message': 'Username is missing from request.'};
+    if (!queryParams.password) errors.passwordMissing = { 'message': 'Password is missing from request.'};
+  } else {
+    await User.findOne({ username: queryParams.username, password: queryParams.password }).exec()
+      .then(user => {
+        if (!user) errors = {'notFound': { 'message': 'Username and the password entered did not match any records.'}};
+        searchResult = user;
+      })
+      .catch(mongoErrors => {
+        errors = convertMongoErrors(mongoErrors);
+      });
+  };
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(searchResult);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
+const findUserById = async id => {
+  let searchResult;
+  let errors;
+
+  await User.findById(id)
+    .then(user => {
+      if (!user) errors = notFoundError('User', id);
+      searchResult = user;
+    })
+    .catch(mongoErrors => {
+      errors = convertMongoErrors(mongoErrors);
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(searchResult);
     } else {
       reject(errors);
     };
@@ -77,4 +106,4 @@ const findAndDestroyUser = async id => {
   });
 };
 
-module.exports = { findUser, setUserValues, saveUser, findAndDestroyUser };
+module.exports = { setUserValues, saveUser, findUserByUsernamePassword, findUserById, findAndDestroyUser };
