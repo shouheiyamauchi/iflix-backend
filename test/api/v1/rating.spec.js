@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 
 const AllRating = require(__modelsDir + '/AllRating');
 const IndividualRating = require(__modelsDir + '/IndividualRating');
+const Content = require(__modelsDir + '/Content');
 
 const ratingsApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/ratings';
 
@@ -14,25 +15,35 @@ describe('- api/v1/ratings', () => {
   beforeEach(function(done) {
     mongoose.connection.dropDatabase()
       .then(() => {
-        const individualRating = new IndividualRating();
+        const content = new Content();
+        content.title = "Superman";
+        content.genre = "Action";
+        content.releaseDate = Date.parse('12-21-1978');
 
-        individualRating.contentId = mongoose.Types.ObjectId();
-        individualRating.userId = mongoose.Types.ObjectId();
-        individualRating.stars = 5;
+        content.save((err, content) => {
+          // can be accessed inside 'it' scope as this.test.content
+          this.currentTest.content = content;
 
-        individualRating.save((err, individualRating) => {
-          // can be accessed inside 'it' scope as this.test.individualRating
-          this.currentTest.individualRating = individualRating;
+          const individualRating = new IndividualRating();
 
-          const allRating = new AllRating();
+          individualRating.contentId = content._id;
+          individualRating.userId = mongoose.Types.ObjectId();
+          individualRating.stars = 5;
 
-          allRating.contentId = individualRating.contentId;
-          allRating.fiveStarsCount++;
-          allRating.totalStarsCount++;
-          allRating.average = individualRating.stars;
+          individualRating.save((err, individualRating) => {
+            // can be accessed inside 'it' scope as this.test.individualRating
+            this.currentTest.individualRating = individualRating;
 
-          allRating.save((err, allRating) => {
-            done();
+            const allRating = new AllRating();
+
+            allRating.contentId = individualRating.contentId;
+            allRating.fiveStarsCount++;
+            allRating.totalStarsCount++;
+            allRating.average = individualRating.stars;
+
+            allRating.save((err, allRating) => {
+              done();
+            });
           });
         });
       });
@@ -147,23 +158,22 @@ describe('- api/v1/ratings', () => {
       });
 
       it('should have correct average rating on first create', function(done) {
-        // generate random mongoose ID
-        let randomContentId = mongoose.Types.ObjectId();
+        const content = new Content();
+        content.title = "Superman";
+        content.genre = "Action";
+        content.releaseDate = Date.parse('12-21-1978');
 
-        // account for very unlikely edge case of randomContentId ending up to be the same
-        while (this.test.individualRating.contentId == randomContentId) {
-          randomContentId = mongoose.Types.ObjectId();
-        };
-
-        request(ratingsApiEndPoint)
-          .post('?contentId=' + randomContentId + '&userId=' + this.test.individualRating.userId + '&stars=3')
-          .end(function(err, res) {
-            res.should.have.property('status', 200);
-            const allRating = res.body.data;
-            // 2 ratings of 3 & 5 results in average of 4
-            allRating.should.be.an.instanceOf(Object).and.have.property('average', 3);
-            done();
-          });
+        content.save((err, content) => {
+          request(ratingsApiEndPoint)
+            .post('?contentId=' + content._id + '&userId=' + this.test.individualRating.userId + '&stars=3')
+            .end(function(err, res) {
+              res.should.have.property('status', 200);
+              const allRating = res.body.data;
+              // 2 ratings of 3 & 5 results in average of 4
+              allRating.should.be.an.instanceOf(Object).and.have.property('average', 3);
+              done();
+            });
+        });
       });
 
       it('should have an average rating of 4', function(done) {
@@ -256,8 +266,26 @@ describe('- api/v1/ratings', () => {
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
-            errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
-            errors.validationErrors.should.be.an.instanceOf(Object).and.have.property('contentId');
+            errors.should.be.an.instanceOf(Object).and.have.property('objectId');
+            done();
+          });
+      });
+
+      it('should give an error with status 404 for non existent contentId', function(done) {
+        // generate random mongoose ID
+        let contentUserId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of contentUserId ending up to be the same
+        while (this.test.individualRating.contentId == contentUserId) {
+          contentUserId = mongoose.Types.ObjectId();
+        };
+
+        request(ratingsApiEndPoint)
+          .post('?contentId=' + contentUserId + '&userId=' + this.test.individualRating.userId + '&stars=3')
+          .end((err, res) => {
+            res.should.have.property('status', 404);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('notFound');
             done();
           });
       });

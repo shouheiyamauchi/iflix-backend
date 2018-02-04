@@ -16,15 +16,20 @@ const show = (req, res) => {
 
 const create = (req, res) => {
   const individualRating = new IndividualRating();
-  setIndividualRatingValues(req.query, individualRating);
 
-  saveNewRatingUpdateAllRating(individualRating)
-    .then(allRating => {
+  const setIndividualRatingValuesPromise = setIndividualRatingValues(req.query, individualRating);
+
+  const saveNewRatingUpdateAllRatingPromise = setIndividualRatingValuesPromise.then(updatedIndividualRating => {
+    return saveNewRatingUpdateAllRating(updatedIndividualRating);
+  });
+
+  Promise.all([setIndividualRatingValuesPromise, saveNewRatingUpdateAllRatingPromise])
+    .then(([updatedIndividualRating, allRating]) => {
       const statusCode = 200;
       sendResponse(res, statusCode, allRating);
     })
     .catch(errors => {
-      const statusCode = 500;
+      const statusCode = ('notFound' in errors) ? 404 : 500;
       sendResponse(res, statusCode, errors);
     });
 };

@@ -1,5 +1,6 @@
 const IndividualRating = require(__modelsDir + '/IndividualRating');
 const AllRating = require(__modelsDir + '/AllRating');
+const { findContent } = require('../contents/services')
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
 const findAllRating = async contentId => {
@@ -27,13 +28,32 @@ const findAllRating = async contentId => {
   });
 };
 
-const setIndividualRatingValues = (queryParams, individualRating) => {
+const setIndividualRatingValues = async (queryParams, individualRating) => {
   const { contentId, userId, stars } = queryParams;
 
-  individualRating.contentId = contentId;
-  individualRating.userId = userId;
-  individualRating.stars = stars;
-  individualRating.updated = Date.now();
+  let result;
+  let errors;
+
+  await findContent(contentId)
+    .then(content => {
+      individualRating.contentId = contentId;
+      individualRating.userId = userId;
+      individualRating.stars = stars;
+      individualRating.updated = Date.now();
+
+      result = individualRating;
+    })
+    .catch(contentErrors => {
+      errors = contentErrors;
+    })
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(result);
+    } else {
+      reject(errors);
+    };
+  });
 };
 
 const saveNewRatingUpdateAllRating = async individualRating => {
