@@ -1,15 +1,19 @@
-const Rating = require(__modelsDir + '/Rating');
+const IndividualRating = require(__modelsDir + '/IndividualRating');
 const { sendResponse } = require(__helpersDir + '/api');
-const { setRatingValues, saveRating } = require('./services');
+const { setIndividualRatingValues, saveNewRating } = require('./services');
+
+const show = (req, res) => {
+
+};
 
 const create = (req, res) => {
-  const content = new Rating();
-  setRatingValues(req.query, content);
+  const individualRating = new IndividualRating();
+  setIndividualRatingValues(req.query, individualRating);
 
-  saveRating(content)
-    .then(content => {
+  saveNewRating(individualRating)
+    .then(individualRating => {
       const statusCode = 200;
-      sendResponse(res, statusCode, content);
+      sendResponse(res, statusCode, individualRating);
     })
     .catch(errors => {
       const statusCode = 500;
@@ -17,4 +21,4 @@ const create = (req, res) => {
     });
 };
 
-module.exports = { create };
+module.exports = { show, create };
