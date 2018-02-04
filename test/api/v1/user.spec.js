@@ -138,4 +138,129 @@ describe('- api/v1/user', () => {
       });
     });
   });
+
+  describe('3. Users Update (PUT /:id)', () => {
+    describe('3.1 Successful requests', () => {
+      it('should be a successful status 200 API call', function(done) {
+        request(usersApiEndPoint)
+          .put('/' + this.test.value._id + '?username=movie-lover&password=safepassword')
+          .end((err, res) => {
+            res.should.have.property('status', 200);
+            done();
+          });
+      });
+
+      it('should return the updated user', function(done) {
+        request(usersApiEndPoint)
+          .put('/' + this.test.value._id + '?username=movie-lover&password=safepassword')
+          .end((err, res) => {
+            res.should.have.property('status', 200);
+            const user = res.body.data;
+            user.should.be.an.instanceOf(Object).and.have.property('username', 'movie-lover');
+            user.should.be.an.instanceOf(Object).and.have.property('password', 'safepassword');
+            done();
+          });
+      });
+    });
+
+    describe('3.2 Unsuccessful requests', () => {
+      it('should give an error with status 404 for non existent user', function(done) {
+        // generate random mongoose ID
+        let randomId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomId ending up to be the same
+        while (this.test.value._id == randomId) {
+          randomId = mongoose.Types.ObjectId();
+        };
+
+        request(usersApiEndPoint)
+          .put('/' + randomId + '?username=movie-lover&password=safepassword')
+          .end((err, res) => {
+            res.should.have.property('status', 404);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('notFound');
+            done();
+          });
+      });
+
+      it('should give an error with status 500 for missing username', function(done) {
+        request(usersApiEndPoint)
+          .put('/' + this.test.value._id + '?password=safepassword')
+          .end((err, res) => {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
+            done();
+          });
+      });
+
+      it('should give an error with status 500 for missing password', function(done) {
+        request(usersApiEndPoint)
+          .put('/' + this.test.value._id + '?username=movie-lover')
+          .end((err, res) => {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
+            done();
+          });
+      });
+    });
+  });
+
+  describe('4. Users Destroy (DELETE /:id)', () => {
+    describe('4.1 Successful requests', () => {
+      it('should be a successful status 200 API call', function(done) {
+        request(usersApiEndPoint)
+          .delete('/' + this.test.value._id)
+          .end((err, res) => {
+            res.should.have.property('status', 200);
+            done();
+          });
+      });
+
+      it('should remove the user successfully', function(done) {
+        request(usersApiEndPoint)
+          .delete('/' + this.test.value._id)
+          .end((err, res) => {
+            res.should.have.property('status', 200);
+            User.find({}, (mongoErrors, users) => {
+              users.should.be.instanceof(Array).and.have.lengthOf(0);
+              done();
+            });
+          });
+      });
+    });
+
+    describe('4.2 Unsuccessful requests', () => {
+      it('should give an error with status 404 for non existent user', function(done) {
+        // generate random mongoose ID
+        let randomId = mongoose.Types.ObjectId();
+
+        // account for very unlikely edge case of randomId ending up to be the same
+        while (this.test.value._id == randomId) {
+          randomId = mongoose.Types.ObjectId();
+        };
+
+        request(usersApiEndPoint)
+          .delete('/' + randomId)
+          .end((err, res) => {
+            res.should.have.property('status', 404);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('notFound');
+            done();
+          });
+      });
+
+      it('should give an error with status 500 for invalid id format', function(done) {
+        request(usersApiEndPoint)
+          .delete('/' + '111')
+          .end((err, res) => {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('objectId');
+            done();
+          });
+      });
+    });
+  });
 });
