@@ -9,7 +9,7 @@
   - git clone git@github.com:shouheiyamauchi/iflix-backend.git
   - yarn install
   - yarn run dev
-  - yarn run test (recommended to run on localTest is local db set up correctly for speed)
+  - yarn run test (recommended to run on localTest if local db set up correctly otherwise it will run quite slow)
 
 Dummy usernames already created: admin, iflix_user, shouhei, john (all with the password 'password')
 
