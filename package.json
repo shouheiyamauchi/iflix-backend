@@ -21,7 +21,7 @@
     "passport-jwt": "^3.0.1"
   },
   "scripts": {
-    "dev": "nodemon index.js",
+    "dev": "ENVIRONMENT=dev nodemon index.js",
     "test": "ENVIRONMENT=test mocha ./test --recursive --exit"
   }
 }

@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 
-const dbUrl = process.env.ENVIRONMENT === 'test' ? process.env.TEST_DB_URL : process.env.DB_URL
+const dbName = {
+  dev: process.env.DB_NAME,
+  test: process.env.TEST_DB_NAME
+}[process.env.ENVIRONMENT];
 
-mongoose.connect(dbUrl);
+mongoose.connect(process.env.DB_URL + dbName);

@@ -9,7 +9,10 @@ global.__modelsDir = __dirname + '/models';
 const server = require('./config/server');
 const db = require('./config/db'); // connect to database
 
-const port = process.env.ENVIRONMENT === 'test' ? process.env.TEST_PORT : process.env.PORT
+const port = {
+  dev: process.env.PORT,
+  test: process.env.TEST_PORT
+}[process.env.ENVIRONMENT];
 
 server.listen(port, () => {
   console.log('Server listening on port ' + port);
