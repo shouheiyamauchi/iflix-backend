@@ -60,7 +60,7 @@ describe('- api/v1/users', () => {
           });
       });
 
-      it('should not return return the password', done => {
+      it('should not return the password', done => {
         request(usersApiEndPoint)
           .post('/signup?username=movie-lover&password=safepassword')
           .end((err, res) => {
@@ -174,6 +174,7 @@ describe('- api/v1/users', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
           .delete('/' + this.test.user._id)
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -183,6 +184,7 @@ describe('- api/v1/users', () => {
       it('should remove the user successfully', function(done) {
         request(usersApiEndPoint)
           .delete('/' + this.test.user._id)
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             User.find({}, (mongoErrors, users) => {
@@ -194,7 +196,7 @@ describe('- api/v1/users', () => {
     });
 
     describe('3.2 Unsuccessful requests', () => {
-      it('should give an error with status 404 for non existent user', function(done) {
+      it('should give an error with status 401 for unmatching token userId and params userId', function(done) {
         // generate random mongoose ID
         let randomId = mongoose.Types.ObjectId();
 
@@ -205,21 +207,11 @@ describe('- api/v1/users', () => {
 
         request(usersApiEndPoint)
           .delete('/' + randomId)
+          .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
-            res.should.have.property('status', 404);
+            res.should.have.property('status', 401);
             const errors = res.body.errors;
-            errors.should.be.an.instanceOf(Object).and.have.property('notFound');
-            done();
-          });
-      });
-
-      it('should give an error with status 500 for invalid id format', function(done) {
-        request(usersApiEndPoint)
-          .delete('/' + '111')
-          .end((err, res) => {
-            res.should.have.property('status', 500);
-            const errors = res.body.errors;
-            errors.should.be.an.instanceOf(Object).and.have.property('objectId');
+            errors.should.be.an.instanceOf(Object).and.have.property('unauthorized');
             done();
           });
       });

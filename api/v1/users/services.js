@@ -19,7 +19,7 @@ checkDuplicatUsername = async username => {
   });
 };
 
-const setUserValues = (queryParams, user) => {
+const setNewUserValues = (queryParams, user) => {
   const { username, password } = queryParams;
 
   user.username = username;
@@ -137,4 +137,4 @@ const findAndDestroyUser = async id => {
   });
 };
 
-module.exports = { checkDuplicatUsername, setUserValues, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser };
+module.exports = { checkDuplicatUsername, setNewUserValues, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser };

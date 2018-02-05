@@ -1,26 +1,24 @@
 const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
-const { checkDuplicatUsername, setUserValues, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
+const { checkDuplicatUsername, setNewUserValues, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
 
 const signup = (req, res) => {
-  checkDuplicatUsername(req.query.username)
-    .then(() => {
-      const user = new User();
-      setUserValues(req.query, user);
+  const checkDuplicatUsernamePromise = checkDuplicatUsername(req.query.username);
+  const saveUserPromise = checkDuplicatUsernamePromise.then(() => {
+    const user = new User();
+    setNewUserValues(req.query, user);
 
-      saveUser(user)
-        .then(user => {
-          const statusCode = 200;
-          sendResponse(res, statusCode, user);
-        })
-        .catch(errors => {
-          const statusCode = 500;
-          sendResponse(res, statusCode, errors);
-        });
+    return saveUser(user);
+  });
+
+  Promise.all([checkDuplicatUsernamePromise, saveUserPromise])
+    .then(([duplicateUsernameCheck, savedUser]) => {
+      const statusCode = 200;
+      sendResponse(res, statusCode, savedUser);
     })
-    .catch(duplicateUserError => {
-      const statusCode = 409;
-      sendResponse(res, statusCode, duplicateUserError);
+    .catch(errors => {
+      const statusCode = ('duplicateUsername' in errors) ? 409 : 500;
+      sendResponse(res, statusCode, errors);
     });
 };
 
@@ -37,8 +35,8 @@ const login = (req, res) => {
 };
 
 const update = (req, res) => {
-  let findUserByIdPromise = findUserById(req.params.id);
-  let updateUserPromise = findUserByIdPromise.then(user => {
+  const findUserByIdPromise = findUserById(req.params.id);
+  const updateUserPromise = findUserByIdPromise.then(user => {
     changeUserPassword(user, req.query.password);
     return saveUser(user);
   });

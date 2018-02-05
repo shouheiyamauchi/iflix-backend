@@ -8,6 +8,6 @@ router.use(passport.initialize());
 router.post('/signup', userController.signup);
 router.post('/login', userController.login)
 router.put('/:id', passport.authenticate('jwt', { session: false }), checkAuthHeaderIdMatch, userController.update);
-router.delete('/:id', userController.destroy);
+router.delete('/:id', passport.authenticate('jwt', { session: false }), checkAuthHeaderIdMatch, userController.destroy);
 
 module.exports = router;
