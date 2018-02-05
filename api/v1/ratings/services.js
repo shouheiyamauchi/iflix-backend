@@ -1,6 +1,7 @@
 const IndividualRating = require(__modelsDir + '/IndividualRating');
 const AllRating = require(__modelsDir + '/AllRating');
 const { findContent } = require('../contents/services');
+const { MINIMUM_RATING_QUANTITY, NOT_ENOUGH_RATINGS_MESSAGE } = require(__rootDir + '/config/constants');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
 const findAllRating = async contentId => {
@@ -9,9 +10,9 @@ const findAllRating = async contentId => {
   await AllRating.findOne({ contentId: contentId }).exec()
     .then(allRating => {
       if (!allRating) {
-        errors = {notFound: {message: 'Ratings for content with ID ' + contentId + ' not found.'}};
+        errors = { notFound: { message: 'Ratings for content with ID ' + contentId + ' not found.' } };
       } else {
-        result = allRating;
+        result = allRating.totalStarsCount < MINIMUM_RATING_QUANTITY ? NOT_ENOUGH_RATINGS_MESSAGE : allRating;
       };
     })
     .catch(mongoErrors => {
@@ -39,7 +40,7 @@ const createRatingAndUpdateAllRating = async queryObject => {
 
   await Promise.all([setIndividualRatingValuesPromise, saveNewRatingUpdateAllRatingPromise])
     .then(([updatedIndividualRating, allRating]) => {
-      result = allRating;
+      result = allRating.totalStarsCount < MINIMUM_RATING_QUANTITY ? NOT_ENOUGH_RATINGS_MESSAGE : allRating;
     })
     .catch(saveErrors => {
       errors = saveErrors;
@@ -60,7 +61,7 @@ const setIndividualRatingValues = async (queryObject, individualRating) => {
 
   await IndividualRating.findOne({ contentId: contentId, userId: userId }).exec()
     .then(content => {
-      if (content) errors = {alreadyRated: {message: 'User with ID ' + userId + ' has already rated content with ID ' + contentId + '.'}};
+      if (content) errors = { alreadyRated: { message: 'User with ID ' + userId + ' has already rated content with ID ' + contentId + '.' } };
     })
     .catch(mongoErrors => {
       errors = convertMongoErrors(mongoErrors);

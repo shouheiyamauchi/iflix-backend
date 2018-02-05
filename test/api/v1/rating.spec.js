@@ -48,15 +48,31 @@ describe('- api/v1/ratings', () => {
               // can be accessed inside 'it' scope as this.test.individualRating
               this.currentTest.individualRating = individualRating;
 
-              const allRating = new AllRating();
+              const anotherIndividualRating = new IndividualRating();
 
-              allRating.contentId = individualRating.contentId;
-              allRating.fiveStarsCount++;
-              allRating.totalStarsCount++;
-              allRating.average = individualRating.stars;
+              anotherIndividualRating.contentId = content._id;
+              anotherIndividualRating.userId = user._id;
+              anotherIndividualRating.stars = 5;
 
-              allRating.save((err, allRating) => {
-                done();
+              anotherIndividualRating.save((err, anotherIndividualRating) => {
+                // can be accessed inside 'it' scope as this.test.anotherIndividualRating
+                this.currentTest.anotherIndividualRating = anotherIndividualRating;
+
+                const allRating = new AllRating();
+
+                allRating.contentId = individualRating.contentId;
+                allRating.fiveStarsCount++;
+                allRating.fiveStarsCount++;
+                allRating.totalStarsCount++;
+                allRating.totalStarsCount++;
+                allRating.average = individualRating.stars;
+
+                allRating.save((err, allRating) => {
+                  // can be accessed inside 'it' scope as this.test.allRating
+                  this.currentTest.allRating = allRating;
+
+                  done();
+                });
               });
             });
           });
@@ -82,41 +98,59 @@ describe('- api/v1/ratings', () => {
           });
       });
 
-      it('should have an average rating of 5', function(done) {
+      it('should have an average rating of null as less than minimum rating quantity', function(done) {
         request(ratingsApiEndPoint)
           .get('/' + this.test.individualRating.contentId)
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
-            allRating.should.be.an.instanceOf(Object).and.have.property('average', 5);
+            allRating.should.be.an.instanceOf(Object).and.have.property('average', null);
             done();
           });
       });
 
-      it('should have only one count of five stars', function(done) {
-        request(ratingsApiEndPoint)
-          .get('/' + this.test.individualRating.contentId)
-          .end(function(err, res) {
-            res.should.have.property('status', 200);
-            const allRating = res.body.data;
-            allRating.should.be.an.instanceOf(Object).and.have.property('oneStarCount', 0);
-            allRating.should.be.an.instanceOf(Object).and.have.property('twoStarsCount', 0);
-            allRating.should.be.an.instanceOf(Object).and.have.property('threeStarsCount', 0);
-            allRating.should.be.an.instanceOf(Object).and.have.property('fourStarsCount', 0);
-            allRating.should.be.an.instanceOf(Object).and.have.property('fiveStarsCount', 1);
-            done();
-          });
+      it('should display correct count of five stars when minimum rating quantity has been reached', function(done) {
+        const allRating = this.test.allRating;
+
+        allRating.contentId = this.test.individualRating.contentId;
+        allRating.fiveStarsCount++;
+        allRating.totalStarsCount++;
+        allRating.average = this.test.individualRating.stars;
+
+        allRating.save((err, allRating) => {
+          request(ratingsApiEndPoint)
+            .get('/' + this.test.individualRating.contentId)
+            .end(function(err, res) {
+              res.should.have.property('status', 200);
+              const allRating = res.body.data;
+              allRating.should.be.an.instanceOf(Object).and.have.property('oneStarCount', 0);
+              allRating.should.be.an.instanceOf(Object).and.have.property('twoStarsCount', 0);
+              allRating.should.be.an.instanceOf(Object).and.have.property('threeStarsCount', 0);
+              allRating.should.be.an.instanceOf(Object).and.have.property('fourStarsCount', 0);
+              allRating.should.be.an.instanceOf(Object).and.have.property('fiveStarsCount', 3);
+              done();
+            });
+        });
       });
 
-      it('should have only one count of total stars', function(done) {
-        request(ratingsApiEndPoint)
-          .get('/' + this.test.individualRating.contentId)
-          .end(function(err, res) {
-            res.should.have.property('status', 200);
-            const allRating = res.body.data;
-            allRating.should.be.an.instanceOf(Object).and.have.property('totalStarsCount', 1);
-            done();
-          });
+      it('should display correct count of total stars when minimum rating quantity has been reached', function(done) {
+        const allRating = this.test.allRating;
+
+        allRating.contentId = this.test.individualRating.contentId;
+        allRating.fiveStarsCount++;
+        allRating.totalStarsCount++;
+        allRating.average = this.test.individualRating.stars;
+
+        allRating.save((err, allRating) => {
+          request(ratingsApiEndPoint)
+            .get('/' + this.test.individualRating.contentId)
+            .end(function(err, res) {
+              res.should.have.property('status', 200);
+              const allRating = res.body.data;
+              allRating.should.be.an.instanceOf(Object).and.have.property('totalStarsCount', 3);
+              done();
+            });
+        });
       });
     });
 
@@ -183,7 +217,7 @@ describe('- api/v1/ratings', () => {
           });
       });
 
-      it('should have correct average rating on first create', function(done) {
+      it('should have null average rating on first create', function(done) {
         const content = new Content();
         content.title = 'Superman';
         content.genre = 'Action';
@@ -197,7 +231,8 @@ describe('- api/v1/ratings', () => {
               res.should.have.property('status', 200);
               const allRating = res.body.data;
               // 2 ratings of 3 & 5 results in average of 4
-              allRating.should.be.an.instanceOf(Object).and.have.property('average', 3);
+              allRating.should.be.an.instanceOf(Object).and.have.property('average', null);
+              allRating.should.be.an.instanceOf(Object).and.have.property('message');
               done();
             });
         });
@@ -205,41 +240,41 @@ describe('- api/v1/ratings', () => {
 
       it('should have an average rating of 4', function(done) {
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=3')
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=2')
           .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
-            // 2 ratings of 3 & 5 results in average of 4
+            // 3 ratings of 5, 5 and 2 results in average of 4
             allRating.should.be.an.instanceOf(Object).and.have.property('average', 4);
             done();
           });
       });
 
-      it('should have one count for each of three and five stars', function(done) {
+      it('should have one and two counts for each of two and five stars respectively', function(done) {
         request(ratingsApiEndPoint)
-          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=3')
+          .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=2')
           .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
             allRating.should.be.an.instanceOf(Object).and.have.property('oneStarCount', 0);
-            allRating.should.be.an.instanceOf(Object).and.have.property('twoStarsCount', 0);
-            allRating.should.be.an.instanceOf(Object).and.have.property('threeStarsCount', 1);
+            allRating.should.be.an.instanceOf(Object).and.have.property('twoStarsCount', 1);
+            allRating.should.be.an.instanceOf(Object).and.have.property('threeStarsCount', 0);
             allRating.should.be.an.instanceOf(Object).and.have.property('fourStarsCount', 0);
-            allRating.should.be.an.instanceOf(Object).and.have.property('fiveStarsCount', 1);
+            allRating.should.be.an.instanceOf(Object).and.have.property('fiveStarsCount', 2);
             done();
           });
       });
 
-      it('should have two counts of total stars', function(done) {
+      it('should have three counts of total stars', function(done) {
         request(ratingsApiEndPoint)
           .post('?contentId=' + this.test.individualRating.contentId + '&userId=' + this.test.anotherUser._id + '&stars=3')
           .set({'Authorization': 'JWT ' + this.test.anotherUserToken})
           .end(function(err, res) {
             res.should.have.property('status', 200);
             const allRating = res.body.data;
-            allRating.should.be.an.instanceOf(Object).and.have.property('totalStarsCount', 2);
+            allRating.should.be.an.instanceOf(Object).and.have.property('totalStarsCount', 3);
             done();
           });
       });

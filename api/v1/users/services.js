@@ -36,8 +36,8 @@ const matchUsernamePassword = async queryObject => {
   if (!queryObject.username || !queryObject.password) {
     errors = {};
 
-    if (!queryObject.username) errors.usernameMissing = { 'message': 'Username is missing from request.'};
-    if (!queryObject.password) errors.passwordMissing = { 'message': 'Password is missing from request.'};
+    if (!queryObject.username) errors.usernameMissing = {'message': 'Username is missing from request.'};
+    if (!queryObject.password) errors.passwordMissing = {'message': 'Password is missing from request.'};
   } else {
     await User.findOne({ username: queryObject.username, password: queryObject.password }).exec()
       .then(user => {
@@ -169,7 +169,7 @@ const checkDuplicatUsername = async username => {
 
   await User.findOne({ username }).exec()
     .then(user => {
-      if (user) errors = {'duplicateUsername': { 'message': 'That username is already taken.' }};
+      if (user) errors = { 'duplicateUsername': { 'message': 'That username is already taken.' } };
     });
 
   return new Promise((resolve, reject) => {

@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const Content = require(__modelsDir + '/Content');
 const AllRating = require(__modelsDir + '/AllRating');
+const { MINIMUM_RATING_QUANTITY } = require(__rootDir + '/config/constants');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
 const getAllContents = async queryObject => {
@@ -10,8 +11,8 @@ const getAllContents = async queryObject => {
   if (!pageNo || !resultsPerPage) {
     errors = {};
 
-    if (!pageNo) errors.pageNoMissing = { 'message': 'Page number is missing from request.'};
-    if (!resultsPerPage) errors.resultsPerPageMissing = { 'message': 'Results per page is missing from request.'};
+    if (!pageNo) errors.pageNoMissing = { 'message': 'Page number is missing from request.' };
+    if (!resultsPerPage) errors.resultsPerPageMissing = { 'message': 'Results per page is missing from request.' };
   } else {
     const getContentListPromise = Content.paginate({}, { page: parseInt(pageNo), limit: parseInt(resultsPerPage) });
     const addRatingToContentListPromise = getContentListPromise.then(contentList => {
@@ -145,7 +146,11 @@ const addRatingToContentList = async contentList => {
       // store in an object all average ratings with contentId as the key
       const ratingsObject = {};
 
-      allRatings.forEach(allRating => ratingsObject[allRating.contentId] = allRating.average);
+      allRatings.forEach(allRating => {
+        if (allRating.totalStarsCount >= MINIMUM_RATING_QUANTITY) {
+          ratingsObject[allRating.contentId] = allRating.average
+        }
+      });
 
       // add average rating key and value to each content object
       contentListWithRatings = contentsWithoutPaginationData.map(content => {
