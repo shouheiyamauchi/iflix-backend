@@ -2,8 +2,10 @@ const app = require('../../../index');
 const request = require('supertest');
 const should = require('should');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 const Content = require(__modelsDir + '/Content');
+const User = require(__modelsDir + '/User');
 
 const contentsApiEndPoint = 'http://localhost:' + process.env.TEST_PORT + '/api/v1/contents';
 
@@ -21,7 +23,31 @@ describe('- api/v1/contents', () => {
         content.save((err, content) => {
           // can be accessed inside 'it' scope as this.test.content
           this.currentTest.content = content;
-          done();
+
+          // create admin user for content manipulation
+          const adminUser = new User();
+          adminUser.username = 'admin-user';
+          adminUser.password = 'special-password';
+          adminUser.role = 'admin'
+
+          adminUser.save((err, adminUser) => {
+            const payload = {id: adminUser._id};
+            // can be accessed inside 'it' scope as this.test.adminToken
+            this.currentTest.adminToken = jwt.sign(payload, process.env.JWT_SECRET);
+
+            // create normal user to test content manipulation restriction
+            const normalUser = new User();
+            normalUser.username = 'normal-user';
+            normalUser.password = 'normal-password';
+            normalUser.role = 'user'
+
+            normalUser.save((err, normalUser) => {
+              const payload = {id: normalUser._id};
+              // can be accessed inside 'it' scope as this.test.userToken
+              this.currentTest.userToken = jwt.sign(payload, process.env.JWT_SECRET);
+              done();
+            });
+          });
         });
       });
   });
@@ -140,18 +166,20 @@ describe('- api/v1/contents', () => {
 
   describe('3. Contents Create (POST /)', () => {
     describe('3.1 Successful requests', () => {
-      it('should be a successful status 200 API call', done => {
+      it('should be a successful status 200 API call', function(done) {
         request(contentsApiEndPoint)
           .post('?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
           });
       });
 
-      it('should return the same content as posted', done => {
+      it('should return the same content as posted', function(done) {
         request(contentsApiEndPoint)
           .post('?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             const content = res.body.data;
@@ -163,9 +191,10 @@ describe('- api/v1/contents', () => {
     });
 
     describe('3.2 Unsuccessful requests', () => {
-      it('should give an error with status 500 for missing title', done => {
+      it('should give an error with status 500 for missing title', function(done) {
         request(contentsApiEndPoint)
           .post('?genre=Sci-fi&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -174,9 +203,10 @@ describe('- api/v1/contents', () => {
           });
       });
 
-      it('should give an error with status 500 for missing genre', done => {
+      it('should give an error with status 500 for missing genre', function(done) {
         request(contentsApiEndPoint)
           .post('?title=Star%20Wars&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -185,9 +215,10 @@ describe('- api/v1/contents', () => {
           });
       });
 
-      it('should give an error with status 500 for missing release date', done => {
+      it('should give an error with status 500 for missing release date', function(done) {
         request(contentsApiEndPoint)
           .post('?title=Star%20Wars&genre=Sci-fi')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -196,13 +227,24 @@ describe('- api/v1/contents', () => {
           });
       });
 
-      it('should give an error with status 500 for invalid release date format', done => {
+      it('should give an error with status 500 for invalid release date format', function(done) {
         request(contentsApiEndPoint)
           .post('?title=Star%20Wars&releaseDate=14-00-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
             errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
+            done();
+          });
+      });
+
+      it('should give an error with status 401 for a non-admin user attempting to create content', function(done) {
+        request(contentsApiEndPoint)
+          .post('?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .end((err, res) => {
+            res.should.have.property('status', 401);
             done();
           });
       });
@@ -214,6 +256,7 @@ describe('- api/v1/contents', () => {
       it('should be a successful status 200 API call', function(done) {
         request(contentsApiEndPoint)
           .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -223,6 +266,7 @@ describe('- api/v1/contents', () => {
       it('should return the updated content', function(done) {
         request(contentsApiEndPoint)
           .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             const content = res.body.data;
@@ -245,6 +289,7 @@ describe('- api/v1/contents', () => {
 
         request(contentsApiEndPoint)
           .put('/' + randomId + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 404);
             const errors = res.body.errors;
@@ -256,6 +301,7 @@ describe('- api/v1/contents', () => {
       it('should give an error with status 500 for missing title', function(done) {
         request(contentsApiEndPoint)
           .put('/' + this.test.content._id + '?genre=Sci-fi&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -267,6 +313,7 @@ describe('- api/v1/contents', () => {
       it('should give an error with status 500 for missing genre', function(done) {
         request(contentsApiEndPoint)
           .put('/' + this.test.content._id + '?title=Star%20Wars&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -278,6 +325,7 @@ describe('- api/v1/contents', () => {
       it('should give an error with status 500 for missing release date', function(done) {
         request(contentsApiEndPoint)
           .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
@@ -289,10 +337,21 @@ describe('- api/v1/contents', () => {
       it('should give an error with status 500 for invalid release date format', function(done) {
         request(contentsApiEndPoint)
           .put('/' + this.test.content._id + '?title=Star%20Wars&releaseDate=14-00-2017')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
             errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
+            done();
+          });
+      });
+
+      it('should give an error with status 401 for a non-admin user attempting to update content', function(done) {
+        request(contentsApiEndPoint)
+          .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .end((err, res) => {
+            res.should.have.property('status', 401);
             done();
           });
       });
@@ -304,6 +363,7 @@ describe('- api/v1/contents', () => {
       it('should be a successful status 200 API call', function(done) {
         request(contentsApiEndPoint)
           .delete('/' + this.test.content._id)
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             done();
@@ -313,6 +373,7 @@ describe('- api/v1/contents', () => {
       it('should remove the content successfully', function(done) {
         request(contentsApiEndPoint)
           .delete('/' + this.test.content._id)
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
             Content.find({}, (mongoErrors, contents) => {
@@ -335,6 +396,7 @@ describe('- api/v1/contents', () => {
 
         request(contentsApiEndPoint)
           .delete('/' + randomId)
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 404);
             const errors = res.body.errors;
@@ -346,10 +408,21 @@ describe('- api/v1/contents', () => {
       it('should give an error with status 500 for invalid id format', function(done) {
         request(contentsApiEndPoint)
           .delete('/' + '111')
+          .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
             const errors = res.body.errors;
             errors.should.be.an.instanceOf(Object).and.have.property('objectId');
+            done();
+          });
+      });
+
+      it('should give an error with status 401 for a non-admin user attempting to delete content', function(done) {
+        request(contentsApiEndPoint)
+          .delete('/' + this.test.content._id)
+          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .end((err, res) => {
+            res.should.have.property('status', 401);
             done();
           });
       });
