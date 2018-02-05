@@ -32,14 +32,15 @@ const createAndSaveNewUser = async queryObject => {
 
 const matchUsernamePassword = async queryObject => {
   let result, errors;
+  const { username, password } = queryObject;
 
-  if (!queryObject.username || !queryObject.password) {
+  if (!username || !password) {
     errors = {};
 
-    if (!queryObject.username) errors.usernameMissing = {'message': 'Username is missing from request.'};
-    if (!queryObject.password) errors.passwordMissing = {'message': 'Password is missing from request.'};
+    if (!username) errors.usernameMissing = {'message': 'Username is missing from request.'};
+    if (!password) errors.passwordMissing = {'message': 'Password is missing from request.'};
   } else {
-    await User.findOne({ username: queryObject.username, password: queryObject.password }).exec()
+    await User.findOne({ username: username, password: password }).exec()
       .then(user => {
         if (!user) {
           errors = {'notFound': { 'message': 'Username and the password entered did not match any records.'}};
