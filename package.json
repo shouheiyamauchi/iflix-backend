@@ -22,6 +22,8 @@
   },
   "scripts": {
     "dev": "ENVIRONMENT=dev nodemon index.js",
-    "test": "ENVIRONMENT=test mocha ./test --recursive --exit"
+    "test": "ENVIRONMENT=test mocha ./test --recursive --timeout 15000 --exit",
+    "localDev": "ENVIRONMENT=localDev nodemon index.js",
+    "localTest": "ENVIRONMENT=localTest mocha ./test --recursive --timeout 15000 --exit"
   }
 }

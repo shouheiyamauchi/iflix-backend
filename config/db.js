@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 
-const dbName = {
-  dev: process.env.DB_NAME,
-  test: process.env.TEST_DB_NAME
+const dbUrl = {
+  localDev: process.env.LOCAL_DB_URL,
+  localTest: process.env.LOCAL_TEST_DB_URL,
+  dev: process.env.DB_URL,
+  test: process.env.TEST_DB_URL
 }[process.env.ENVIRONMENT];
 
-mongoose.connect(process.env.DB_URL + dbName);
+mongoose.connect(dbUrl);

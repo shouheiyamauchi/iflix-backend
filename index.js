@@ -11,7 +11,9 @@ const db = require('./config/db'); // connect to database
 
 const port = {
   dev: process.env.PORT,
-  test: process.env.TEST_PORT
+  test: process.env.TEST_PORT,
+  localDev: process.env.PORT,
+  localTest: process.env.TEST_PORT
 }[process.env.ENVIRONMENT];
 
 server.listen(port, () => {

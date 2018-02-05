@@ -2,7 +2,7 @@ const { sendResponse } = require(__helpersDir + '/api');
 const { findAllRating, createRatingAndUpdateAllRating } = require('./services');
 
 const show = (req, res) => {
-  findAllRating(req.params.id)
+  findAllRating(req.params)
     .then(allRating => {
       const statusCode = 200;
       sendResponse(res, statusCode, allRating);

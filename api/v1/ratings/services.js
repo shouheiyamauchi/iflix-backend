@@ -4,13 +4,14 @@ const { findContent } = require('../contents/services');
 const { MINIMUM_RATING_QUANTITY, NOT_ENOUGH_RATINGS_MESSAGE } = require(__rootDir + '/config/constants');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
-const findAllRating = async contentId => {
+const findAllRating = async paramsObject => {
   let result, errors;
+  const { id } = paramsObject;
 
-  await AllRating.findOne({ contentId: contentId }).exec()
+  await AllRating.findOne({ contentId: id }).exec()
     .then(allRating => {
       if (!allRating) {
-        errors = { notFound: { message: 'Ratings for content with ID ' + contentId + ' not found.' } };
+        errors = { notFound: { message: 'Ratings for content with ID ' + id + ' not found.' } };
       } else {
         result = allRating.totalStarsCount < MINIMUM_RATING_QUANTITY ? NOT_ENOUGH_RATINGS_MESSAGE : allRating;
       };
