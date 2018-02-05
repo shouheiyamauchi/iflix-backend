@@ -1,4 +1,3 @@
-const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
 const { createAndSaveNewUser, matchUsernamePassword, findAndUpdateUserPassword, findAndChangeUserRole, findAndDestroyUser } = require('./services');
 

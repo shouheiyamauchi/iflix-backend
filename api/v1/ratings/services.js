@@ -27,9 +27,36 @@ const findAllRating = async contentId => {
   });
 };
 
-const setIndividualRatingValues = async (queryParams, individualRating) => {
+const createRatingAndUpdateAllRating = async queryObject => {
   let result, errors;
-  const { contentId, userId, stars } = queryParams;
+
+  const individualRating = new IndividualRating();
+
+  const setIndividualRatingValuesPromise = setIndividualRatingValues(queryObject, individualRating);
+  const saveNewRatingUpdateAllRatingPromise = setIndividualRatingValuesPromise.then(updatedIndividualRating => {
+    return saveNewRatingUpdateAllRating(updatedIndividualRating);
+  });
+
+  await Promise.all([setIndividualRatingValuesPromise, saveNewRatingUpdateAllRatingPromise])
+    .then(([updatedIndividualRating, allRating]) => {
+      result = allRating;
+    })
+    .catch(saveErrors => {
+      errors = saveErrors;
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(result);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
+const setIndividualRatingValues = async (queryObject, individualRating) => {
+  let result, errors;
+  const { contentId, userId, stars } = queryObject;
 
   await IndividualRating.findOne({ contentId: contentId, userId: userId }).exec()
     .then(content => {
@@ -160,4 +187,4 @@ const calculateAverageRating = allRating => {
   return Math.round(totalRating / allRating.totalStarsCount * 10) / 10;
 };
 
-module.exports = { findAllRating, setIndividualRatingValues, saveNewRatingUpdateAllRating };
+module.exports = { findAllRating, createRatingAndUpdateAllRating };

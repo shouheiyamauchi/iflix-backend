@@ -1,6 +1,5 @@
-const IndividualRating = require(__modelsDir + '/IndividualRating');
 const { sendResponse } = require(__helpersDir + '/api');
-const { findAllRating, setIndividualRatingValues, saveNewRatingUpdateAllRating } = require('./services');
+const { findAllRating, createRatingAndUpdateAllRating } = require('./services');
 
 const show = (req, res) => {
   findAllRating(req.params.id)
@@ -15,15 +14,8 @@ const show = (req, res) => {
 };
 
 const create = (req, res) => {
-  const individualRating = new IndividualRating();
-
-  const setIndividualRatingValuesPromise = setIndividualRatingValues(req.query, individualRating);
-  const saveNewRatingUpdateAllRatingPromise = setIndividualRatingValuesPromise.then(updatedIndividualRating => {
-    return saveNewRatingUpdateAllRating(updatedIndividualRating);
-  });
-
-  Promise.all([setIndividualRatingValuesPromise, saveNewRatingUpdateAllRatingPromise])
-    .then(([updatedIndividualRating, allRating]) => {
+  createRatingAndUpdateAllRating(req.query)
+    .then(allRating => {
       const statusCode = 200;
       sendResponse(res, statusCode, allRating);
     })
