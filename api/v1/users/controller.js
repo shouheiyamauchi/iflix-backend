@@ -1,6 +1,6 @@
 const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
-const { checkDuplicatUsername, setUserValues, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
+const { checkDuplicatUsername, setUserValues, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
 
 const signup = (req, res) => {
   checkDuplicatUsername(req.query.username)
@@ -39,7 +39,7 @@ const login = (req, res) => {
 const update = (req, res) => {
   let findUserByIdPromise = findUserById(req.params.id);
   let updateUserPromise = findUserByIdPromise.then(user => {
-    setUserValues(req.query, user);
+    changeUserPassword(user, req.query.password);
     return saveUser(user);
   });
 

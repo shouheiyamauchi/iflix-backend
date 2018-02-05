@@ -27,13 +27,20 @@ const setUserValues = (queryParams, user) => {
   user.updated = Date.now();
 };
 
+const changeUserPassword = (user, password) => {
+  user.password = password;
+  user.updated = Date.now();
+};
+
 const saveUser = async user => {
   let result;
   let errors;
 
   await user.save()
     .then(user => {
-      result = user;
+      result = user.toObject();
+      // don't display password on API endpoint
+      delete result.password;
     })
     .catch(mongoErrors => {
       errors = convertMongoErrors(mongoErrors);
@@ -130,4 +137,4 @@ const findAndDestroyUser = async id => {
   });
 };
 
-module.exports = { checkDuplicatUsername, setUserValues, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser };
+module.exports = { checkDuplicatUsername, setUserValues, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser };

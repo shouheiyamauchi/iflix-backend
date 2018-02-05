@@ -56,7 +56,17 @@ describe('- api/v1/users', () => {
             res.should.have.property('status', 200);
             const user = res.body.data;
             user.should.be.an.instanceOf(Object).and.have.property('username', 'movie-lover');
-            user.should.be.an.instanceOf(Object).and.have.property('password', 'safepassword');
+            done();
+          });
+      });
+
+      it('should not return return the password', done => {
+        request(usersApiEndPoint)
+          .post('/signup?username=movie-lover&password=safepassword')
+          .end((err, res) => {
+            res.should.have.property('status', 200);
+            const user = res.body.data;
+            user.should.be.an.instanceOf(Object).and.not.have.property('password');
             done();
           });
       });
@@ -102,7 +112,7 @@ describe('- api/v1/users', () => {
     describe('2.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
-          .put('/' + this.test.user._id + '?username=movie-lover&password=safepassword')
+          .put('/' + this.test.user._id + '?password=safepassword')
           .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
@@ -110,16 +120,16 @@ describe('- api/v1/users', () => {
           });
       });
 
-      it('should return the updated user', function(done) {
+      it('should have successfully the updated user\'s password', function(done) {
         request(usersApiEndPoint)
-          .put('/' + this.test.user._id + '?username=movie-lover&password=safepassword')
+          .put('/' + this.test.user._id + '?password=safepassword')
           .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
-            const user = res.body.data;
-            user.should.be.an.instanceOf(Object).and.have.property('username', 'movie-lover');
-            user.should.be.an.instanceOf(Object).and.have.property('password', 'safepassword');
-            done();
+            User.findById(this.test.user._id).exec((err, user) => {
+              user.toObject().should.be.an.instanceOf(Object).and.have.property('password', 'safepassword');
+              done();
+            });
           });
       });
     });
@@ -145,21 +155,9 @@ describe('- api/v1/users', () => {
           });
       });
 
-      it('should give an error with status 500 for missing username', function(done) {
-        request(usersApiEndPoint)
-          .put('/' + this.test.user._id + '?password=safepassword')
-          .set({'Authorization': 'JWT ' + this.test.userToken})
-          .end((err, res) => {
-            res.should.have.property('status', 500);
-            const errors = res.body.errors;
-            errors.should.be.an.instanceOf(Object).and.have.property('validationErrors');
-            done();
-          });
-      });
-
       it('should give an error with status 500 for missing password', function(done) {
         request(usersApiEndPoint)
-          .put('/' + this.test.user._id + '?username=movie-lover')
+          .put('/' + this.test.user._id)
           .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
