@@ -4,10 +4,8 @@ const AllRating = require(__modelsDir + '/AllRating');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
 const getAllContents = async (paginationOptions, includeRating) => {
+  let searchResult, errors;
   const { pageNo, resultsPerPage } = paginationOptions;
-
-  let searchResult;
-  let errors;
 
   if (!pageNo || !resultsPerPage) {
     errors = {};
@@ -40,8 +38,7 @@ const getAllContents = async (paginationOptions, includeRating) => {
 };
 
 const addRatingToContentList = async contentList => {
-  let contentListWithRatings;
-  let errors;
+  let contentListWithRatings, errors;
 
   const amendedContentList = _.cloneDeep(contentList);
   const contentsWithoutPaginationData = amendedContentList.docs
@@ -77,8 +74,7 @@ const addRatingToContentList = async contentList => {
 };
 
 const findContent = async id => {
-  let searchResult;
-  let errors;
+  let searchResult, errors;
 
   await Content.findById(id)
     .then(content => {
@@ -109,8 +105,7 @@ const setContentValues = (queryParams, content) => {
 };
 
 const saveContent = async content => {
-  let result;
-  let errors;
+  let result, errors;
 
   await content.save()
     .then(content => {
@@ -130,8 +125,7 @@ const saveContent = async content => {
 };
 
 const findAndDestroyContent = async id => {
-  let result;
-  let errors;
+  let result, errors;
 
   await Content.findByIdAndRemove(id)
     .then(content => {

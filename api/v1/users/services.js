@@ -2,53 +2,23 @@ const jwt = require('jsonwebtoken');
 const User = require(__modelsDir + '/User');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
-checkDuplicatUsername = async username => {
-  let errors;
+const createAndSaveNewUser = async queryObject => {
+  let result, errors;
+  const { username, password } = queryObject;
 
-  await User.findOne({ username }).exec()
-    .then(user => {
-      if (user) errors = {'duplicateUsername': { 'message': 'That username is already taken.' }};
-    });
-
-  return new Promise((resolve, reject) => {
-    if (!errors) {
-      resolve(null);
-    } else {
-      reject(errors);
-    };
+  const checkDuplicatUsernamePromise = checkDuplicatUsername(username);
+  const saveUserPromise = checkDuplicatUsernamePromise.then(() => {
+    const user = new User();
+    setNewUserValues(user, queryObject);
+    return saveUser(user);
   });
-};
 
-const setNewUserValues = (queryParams, user) => {
-  const { username, password } = queryParams;
-
-  user.username = username;
-  user.password = password;
-  user.updated = Date.now();
-};
-
-const changeUserPassword = (user, password) => {
-  user.password = password;
-  user.updated = Date.now();
-};
-
-const changeUserRole = (user, role) => {
-  user.role = role;
-  user.updated = Date.now();
-};
-
-const saveUser = async user => {
-  let result;
-  let errors;
-
-  await user.save()
-    .then(user => {
-      result = user.toObject();
-      // don't display password on API endpoint
-      delete result.password;
+  await Promise.all([checkDuplicatUsernamePromise, saveUserPromise])
+    .then(([duplicateUsernameCheck, savedUser]) => {
+      result = savedUser;
     })
-    .catch(mongoErrors => {
-      errors = convertMongoErrors(mongoErrors);
+    .catch(saveErrors => {
+      errors = saveErrors;
     });
 
   return new Promise((resolve, reject) => {
@@ -60,17 +30,16 @@ const saveUser = async user => {
   });
 };
 
-matchUsernamePassword = async queryParams => {
-  let result;
-  let errors;
+const matchUsernamePassword = async queryObject => {
+  let result, errors;
 
-  if (!queryParams.username || !queryParams.password) {
+  if (!queryObject.username || !queryObject.password) {
     errors = {};
 
-    if (!queryParams.username) errors.usernameMissing = { 'message': 'Username is missing from request.'};
-    if (!queryParams.password) errors.passwordMissing = { 'message': 'Password is missing from request.'};
+    if (!queryObject.username) errors.usernameMissing = { 'message': 'Username is missing from request.'};
+    if (!queryObject.password) errors.passwordMissing = { 'message': 'Password is missing from request.'};
   } else {
-    await User.findOne({ username: queryParams.username, password: queryParams.password }).exec()
+    await User.findOne({ username: queryObject.username, password: queryObject.password }).exec()
       .then(user => {
         if (!user) {
           errors = {'notFound': { 'message': 'Username and the password entered did not match any records.'}};
@@ -94,31 +63,64 @@ matchUsernamePassword = async queryParams => {
   });
 };
 
-const findUserById = async id => {
-  let searchResult;
-  let errors;
+const findAndUpdateUserPassword = async (paramObject, queryObject) => {
+  let result, errors;
+  const { id } = paramObject;
+  const { password } = queryObject;
 
-  await User.findById(id)
-    .then(user => {
-      if (!user) errors = notFoundError('User', id);
-      searchResult = user;
+  const findUserByIdPromise = findUserById(id);
+  const updateUserPromise = findUserByIdPromise.then(user => {
+    changeUserPassword(user, password);
+    return saveUser(user);
+  });
+
+  await Promise.all([findUserByIdPromise, updateUserPromise])
+    .then(([foundUser, updatedUser]) => {
+      result = updatedUser;
     })
-    .catch(mongoErrors => {
-      errors = convertMongoErrors(mongoErrors);
+    .catch(saveErrors => {
+      errors = saveErrors;
     });
 
   return new Promise((resolve, reject) => {
     if (!errors) {
-      resolve(searchResult);
+      resolve(result);
     } else {
       reject(errors);
     };
   });
 };
 
-const findAndDestroyUser = async id => {
-  let result;
-  let errors;
+const findAndChangeUserRole = async (queryObject) => {
+  let result, errors;
+  const { userId, role } = queryObject;
+
+  const findUserByIdPromise = findUserById(userId);
+  const updateUserRolePromise = findUserByIdPromise.then(user => {
+    changeUserRole(user, role);
+    return saveUser(user);
+  });
+
+  await Promise.all([findUserByIdPromise, updateUserRolePromise])
+    .then(([foundUser, updatedUser]) => {
+      result = updatedUser;
+    })
+    .catch(saveErrors => {
+      errors = saveErrors;
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(result);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
+const findAndDestroyUser = async paramObject => {
+  let result, errors;
+  const { id } = paramObject;
 
   await User.findByIdAndRemove(id)
     .then(user => {
@@ -141,4 +143,83 @@ const findAndDestroyUser = async id => {
   });
 };
 
-module.exports = { checkDuplicatUsername, setNewUserValues, changeUserPassword, changeUserRole, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser };
+const findUserById = async id => {
+  let searchResult, errors;
+
+  await User.findById(id)
+    .then(user => {
+      if (!user) errors = notFoundError('User', id);
+      searchResult = user;
+    })
+    .catch(mongoErrors => {
+      errors = convertMongoErrors(mongoErrors);
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(searchResult);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
+const checkDuplicatUsername = async username => {
+  let errors;
+
+  await User.findOne({ username }).exec()
+    .then(user => {
+      if (user) errors = {'duplicateUsername': { 'message': 'That username is already taken.' }};
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(null);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
+const setNewUserValues = (user, queryObject) => {
+  const { username, password } = queryObject;
+
+  user.username = username;
+  user.password = password;
+  user.updated = Date.now();
+};
+
+const changeUserPassword = (user, password) => {
+  user.password = password;
+  user.updated = Date.now();
+};
+
+const changeUserRole = (user, role) => {
+  user.role = role;
+  user.updated = Date.now();
+};
+
+const saveUser = async user => {
+  let result, errors;
+
+  await user.save()
+    .then(user => {
+      result = user.toObject();
+      // don't display password on API endpoint
+      delete result.password;
+    })
+    .catch(mongoErrors => {
+      errors = convertMongoErrors(mongoErrors);
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(result);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
+
+module.exports = { createAndSaveNewUser, matchUsernamePassword, findAndUpdateUserPassword, findAndChangeUserRole, findAndDestroyUser };

@@ -4,8 +4,7 @@ const { findContent } = require('../contents/services');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
 const findAllRating = async contentId => {
-  let result;
-  let errors;
+  let result, errors;
 
   await AllRating.findOne({ contentId: contentId }).exec()
     .then(allRating => {
@@ -29,10 +28,8 @@ const findAllRating = async contentId => {
 };
 
 const setIndividualRatingValues = async (queryParams, individualRating) => {
+  let result, errors;
   const { contentId, userId, stars } = queryParams;
-
-  let result;
-  let errors;
 
   await IndividualRating.findOne({ contentId: contentId, userId: userId }).exec()
     .then(content => {
@@ -67,8 +64,7 @@ const setIndividualRatingValues = async (queryParams, individualRating) => {
 };
 
 const saveNewRatingUpdateAllRating = async individualRating => {
-  let result;
-  let errors;
+  let result, errors;
 
   const individualRatingSavePromise = individualRating.save();
   const findAndUpdateAllRatingPromise = individualRatingSavePromise.then(individualRating => {
@@ -93,8 +89,7 @@ const saveNewRatingUpdateAllRating = async individualRating => {
 };
 
 const findAndUpdateAllRating = async individualRating => {
-  let result;
-  let errors;
+  let result, errors;
 
   const findAllRatingPromise = AllRating.findOne({ contentId: individualRating.contentId }).exec();
   const saveAllRatingPromise = findAllRatingPromise.then(allRating => {
@@ -120,8 +115,7 @@ const findAndUpdateAllRating = async individualRating => {
 };
 
 const saveAllRating = async (allRating, individualRating) => {
-  let result;
-  let errors;
+  let result, errors;
 
   const starsCountToIncrease = {
     1: 'oneStarCount',

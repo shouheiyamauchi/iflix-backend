@@ -1,20 +1,12 @@
 const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
-const { checkDuplicatUsername, setNewUserValues, changeUserRole, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
+const { createAndSaveNewUser, matchUsernamePassword, findAndUpdateUserPassword, findAndChangeUserRole, findAndDestroyUser } = require('./services');
 
 const signup = (req, res) => {
-  const checkDuplicatUsernamePromise = checkDuplicatUsername(req.query.username);
-  const saveUserPromise = checkDuplicatUsernamePromise.then(() => {
-    const user = new User();
-    setNewUserValues(req.query, user);
-
-    return saveUser(user);
-  });
-
-  Promise.all([checkDuplicatUsernamePromise, saveUserPromise])
-    .then(([duplicateUsernameCheck, savedUser]) => {
+  createAndSaveNewUser(req.query)
+    .then(user => {
       const statusCode = 200;
-      sendResponse(res, statusCode, savedUser);
+      sendResponse(res, statusCode, user);
     })
     .catch(errors => {
       const statusCode = ('duplicateUsername' in errors) ? 409 : 500;
@@ -35,16 +27,10 @@ const login = (req, res) => {
 };
 
 const update = (req, res) => {
-  const findUserByIdPromise = findUserById(req.params.id);
-  const updateUserPromise = findUserByIdPromise.then(user => {
-    changeUserPassword(user, req.query.password);
-    return saveUser(user);
-  });
-
-  Promise.all([findUserByIdPromise, updateUserPromise])
-    .then(([foundUser, updatedUser]) => {
+  findAndUpdateUserPassword(req.params, req.query)
+    .then(user => {
       const statusCode = 200;
-      sendResponse(res, statusCode, updatedUser);
+      sendResponse(res, statusCode, user);
     })
     .catch(errors => {
       const statusCode = ('notFound' in errors) ? 404 : 500;
@@ -53,16 +39,10 @@ const update = (req, res) => {
 };
 
 const changeRole = (req, res) => {
-  const findUserByIdPromise = findUserById(req.query.userId);
-  const updateUserRolePromise = findUserByIdPromise.then(user => {
-    changeUserRole(user, req.query.role);
-    return saveUser(user);
-  });
-
-  Promise.all([findUserByIdPromise, updateUserRolePromise])
-    .then(([foundUser, updatedUser]) => {
+  findAndChangeUserRole(req.query)
+    .then(user => {
       const statusCode = 200;
-      sendResponse(res, statusCode, updatedUser);
+      sendResponse(res, statusCode, user);
     })
     .catch(errors => {
       const statusCode = ('notFound' in errors) ? 404 : 500;
@@ -71,7 +51,7 @@ const changeRole = (req, res) => {
 };
 
 const destroy = (req, res) => {
-  findAndDestroyUser(req.params.id)
+  findAndDestroyUser(req.params)
     .then(result => {
       const statusCode = 200;
       sendResponse(res, statusCode, result);
