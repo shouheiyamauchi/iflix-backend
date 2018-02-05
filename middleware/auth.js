@@ -40,8 +40,22 @@ const checkAuthHeaderIdMatch = (req, res, next) => {
   };
 };
 
+const adminLoggedIn = (req, res, next) => {
+  const loggedInUser = req.user
+  const requestUserId = req.query.userId || req.params.id // for user routes id will be in params
+
+  if (checkIfAdmin(loggedInUser)) {
+    // by pass ID match check if admin
+    next();
+  } else {
+    const statusCode = 401;
+    const errorMessage = {unauthorized: {message: 'You must be an administrator to perform this action.'}};
+    sendResponse(res, statusCode, errorMessage);
+  };
+};
+
 const checkIfAdmin = user => {
   return (user.role === 'admin');
 };
 
-module.exports = { passport, checkAuthHeaderIdMatch };
+module.exports = { passport, checkAuthHeaderIdMatch, adminLoggedIn };

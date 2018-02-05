@@ -32,6 +32,11 @@ const changeUserPassword = (user, password) => {
   user.updated = Date.now();
 };
 
+const changeUserRole = (user, role) => {
+  user.role = role;
+  user.updated = Date.now();
+};
+
 const saveUser = async user => {
   let result;
   let errors;
@@ -136,4 +141,4 @@ const findAndDestroyUser = async id => {
   });
 };
 
-module.exports = { checkDuplicatUsername, setNewUserValues, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser };
+module.exports = { checkDuplicatUsername, setNewUserValues, changeUserPassword, changeUserRole, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser };

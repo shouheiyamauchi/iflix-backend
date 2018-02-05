@@ -1,6 +1,6 @@
 const User = require(__modelsDir + '/User');
 const { sendResponse } = require(__helpersDir + '/api');
-const { checkDuplicatUsername, setNewUserValues, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
+const { checkDuplicatUsername, setNewUserValues, changeUserRole, changeUserPassword, saveUser, matchUsernamePassword, findUserById, findAndDestroyUser } = require('./services');
 
 const signup = (req, res) => {
   const checkDuplicatUsernamePromise = checkDuplicatUsername(req.query.username);
@@ -52,6 +52,24 @@ const update = (req, res) => {
     });
 };
 
+const changeRole = (req, res) => {
+  const findUserByIdPromise = findUserById(req.query.userId);
+  const updateUserRolePromise = findUserByIdPromise.then(user => {
+    changeUserRole(user, req.query.role);
+    return saveUser(user);
+  });
+
+  Promise.all([findUserByIdPromise, updateUserRolePromise])
+    .then(([foundUser, updatedUser]) => {
+      const statusCode = 200;
+      sendResponse(res, statusCode, updatedUser);
+    })
+    .catch(errors => {
+      const statusCode = ('notFound' in errors) ? 404 : 500;
+      sendResponse(res, statusCode, errors);
+    });
+};
+
 const destroy = (req, res) => {
   findAndDestroyUser(req.params.id)
     .then(result => {
@@ -64,4 +82,4 @@ const destroy = (req, res) => {
     });
 };
 
-module.exports = { signup, login, update, destroy };
+module.exports = { signup, login, update, changeRole, destroy };

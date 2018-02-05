@@ -38,7 +38,7 @@ describe('- api/v1/users', () => {
       });
   });
 
-  describe('1. Users Signup (POST /)', () => {
+  describe('1. Users Signup (POST /signup)', () => {
     describe('1.1 Successful requests', () => {
       it('should be a successful status 200 API call', done => {
         request(usersApiEndPoint)
@@ -108,8 +108,45 @@ describe('- api/v1/users', () => {
     });
   });
 
-  describe('2. Users Update (PUT /:id)', () => {
+  describe('2. Users Login (POST /login)', () => {
     describe('2.1 Successful requests', () => {
+      it('should be a successful status 200 API call', function(done) {
+        request(usersApiEndPoint)
+          .post('/login?username=' + this.test.user.username + '&password=' + this.test.user.password)
+          .end((err, res) => {
+            res.should.have.property('status', 200);
+            done();
+          });
+      });
+
+      it('should respond with a userId, userRole and token', function(done) {
+        request(usersApiEndPoint)
+          .post('/login?username=' + this.test.user.username + '&password=' + this.test.user.password)
+          .end((err, res) => {
+            res.should.have.property('status', 200);
+            const userPayload = res.body.data;
+            userPayload.should.be.an.instanceOf(Object).and.have.property('userId');
+            userPayload.should.be.an.instanceOf(Object).and.have.property('userRole');
+            userPayload.should.be.an.instanceOf(Object).and.have.property('token');
+            done();
+          });
+      });
+    });
+
+    describe('2.2 Unsuccessful requests', () => {
+      it('should give an error with status 404 for incorrect password', function(done) {
+        request(usersApiEndPoint)
+          .post('/login?username=' + this.test.user.username + '&password=wrong-password')
+          .end((err, res) => {
+            res.should.have.property('status', 404);
+            done();
+          });
+      });
+    });
+  });
+
+  describe('3. Users Update (PUT /:id)', () => {
+    describe('3.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
           .put('/' + this.test.user._id + '?password=safepassword')
@@ -134,7 +171,7 @@ describe('- api/v1/users', () => {
       });
     });
 
-    describe('2.2 Unsuccessful requests', () => {
+    describe('3.2 Unsuccessful requests', () => {
       it('should give an error with status 401 for unmatching token userId and params userId', function(done) {
         // generate random mongoose ID
         let randomId = mongoose.Types.ObjectId();
@@ -169,8 +206,46 @@ describe('- api/v1/users', () => {
     });
   });
 
-  describe('3. Users Destroy (DELETE /:id)', () => {
-    describe('3.1 Successful requests', () => {
+  describe('4. Users Change Role (POST /change-role)', () => {
+    describe('4.1 Successful requests', () => {
+      it('admin can change another user\'s role successfully', function(done) {
+        const user = new User();
+        user.username = 'admin-user';
+        user.password = 'special-password';
+        user.role = 'admin'
+
+        user.save((err, user) => {
+          const payload = {id: user._id};
+          const adminToken = jwt.sign(payload, process.env.JWT_SECRET);
+
+          request(usersApiEndPoint)
+            .post('/change-role?userId=' + this.test.user._id + '&role=admin')
+            .set({'Authorization': 'JWT ' + adminToken})
+            .end((err, res) => {
+              res.should.have.property('status', 200);
+              done();
+            });
+        });
+      });
+    });
+
+    describe('4.2 Unsuccessful requests', () => {
+      it('should give an error with status 401 for a non-admin user attempting to change roles', function(done) {
+        request(usersApiEndPoint)
+          .post('/change-role?userId=' + this.test.user._id + '&role=admin')
+          .set({'Authorization': 'JWT ' + this.test.userToken})
+          .end((err, res) => {
+            res.should.have.property('status', 401);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('unauthorized');
+            done();
+          });
+      });
+    });
+  });
+
+  describe('5. Users Destroy (DELETE /:id)', () => {
+    describe('5.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(usersApiEndPoint)
           .delete('/' + this.test.user._id)
@@ -215,7 +290,7 @@ describe('- api/v1/users', () => {
       });
     });
 
-    describe('3.2 Unsuccessful requests', () => {
+    describe('5.2 Unsuccessful requests', () => {
       it('should give an error with status 401 for unmatching token userId and params userId', function(done) {
         // generate random mongoose ID
         let randomId = mongoose.Types.ObjectId();
