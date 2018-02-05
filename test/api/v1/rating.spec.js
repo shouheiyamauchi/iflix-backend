@@ -18,8 +18,8 @@ describe('- api/v1/ratings', () => {
     mongoose.connection.dropDatabase()
       .then(() => {
         const content = new Content();
-        content.title = "Superman";
-        content.genre = "Action";
+        content.title = 'Superman';
+        content.genre = 'Action';
         content.releaseDate = Date.parse('12-21-1978');
 
         content.save((err, content) => {
@@ -27,8 +27,8 @@ describe('- api/v1/ratings', () => {
           this.currentTest.content = content;
 
           const user = new User();
-          user.username = "iflix-user";
-          user.password = "password123";
+          user.username = 'iflix-user';
+          user.password = 'password123';
 
           user.save((err, user) => {
             // can be accessed inside 'it' scope as this.test.user
@@ -157,8 +157,8 @@ describe('- api/v1/ratings', () => {
     beforeEach(function(done) {
       // create new user for second rating
       const user = new User();
-      user.username = "iflix-anotherUser";
-      user.password = "password123";
+      user.username = 'iflix-anotherUser';
+      user.password = 'password123';
 
       user.save((err, user) => {
         // can be accessed inside 'it' scope as this.test.user
@@ -185,8 +185,8 @@ describe('- api/v1/ratings', () => {
 
       it('should have correct average rating on first create', function(done) {
         const content = new Content();
-        content.title = "Superman";
-        content.genre = "Action";
+        content.title = 'Superman';
+        content.genre = 'Action';
         content.releaseDate = Date.parse('12-21-1978');
 
         content.save((err, content) => {

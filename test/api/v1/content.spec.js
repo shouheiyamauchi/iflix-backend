@@ -14,8 +14,8 @@ describe('- api/v1/contents', () => {
     mongoose.connection.dropDatabase()
       .then(() => {
         const content = new Content();
-        content.title = "Superman";
-        content.genre = "Action";
+        content.title = 'Superman';
+        content.genre = 'Action';
         content.releaseDate = Date.parse('12-21-1978');
 
         content.save((err, content) => {

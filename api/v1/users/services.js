@@ -72,8 +72,7 @@ matchUsernamePassword = async queryParams => {
         } else {
           const payload = {id: user._id};
           const token = jwt.sign(payload, process.env.JWT_SECRET);
-          // add roles to User model to use userRole attribute
-          result = { userId: user._id, userRole: 'user', token };
+          result = { userId: user._id, userRole: user.role, token };
         };
       })
       .catch(mongoErrors => {

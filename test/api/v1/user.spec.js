@@ -15,8 +15,8 @@ describe('- api/v1/users', () => {
     mongoose.connection.dropDatabase()
       .then(() => {
         const user = new User();
-        user.username = "iflix-user";
-        user.password = "password123";
+        user.username = 'iflix-user';
+        user.password = 'password123';
 
         user.save((err, user) => {
           // can be accessed inside 'it' scope as this.test.user
@@ -192,6 +192,26 @@ describe('- api/v1/users', () => {
               done();
             });
           });
+      });
+
+      it('admin can remove another user successfully', function(done) {
+        const user = new User();
+        user.username = 'admin-user';
+        user.password = 'special-password';
+        user.role = 'admin'
+
+        user.save((err, user) => {
+          const payload = {id: user._id};
+          const adminToken = jwt.sign(payload, process.env.JWT_SECRET);
+
+          request(usersApiEndPoint)
+            .delete('/' + this.test.user._id)
+            .set({'Authorization': 'JWT ' + adminToken})
+            .end((err, res) => {
+              res.should.have.property('status', 200);
+              done();
+            });
+        });
       });
     });
 
