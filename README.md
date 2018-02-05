@@ -50,3 +50,11 @@ The environmental variable (not in .gitignore for simplicity sake) LOCAL_DB_URL 
 
 ### Protected Endpoints
 All endpoints in bold above are protected endpoints which require the user to be logged in. In order to achieve this, login from: http://localhost:3001/api/v1/users/login?username=[username]&password=[password] then the resulting JSON will include a token. Using Postman (or any similar client) add this to the Authorization header appended with 'JWT '. So for example: 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVhNzgzYTIxZmI0ODU3MjllYTczOTEzMCIsImlhdCI6MTUxNzgyOTc5MH0.-uZAveSJqjzLI2L7BoVforOf0_jHcdxHmQcnpE4K9g0' will be the Authorization header. The content manipulation and change-role end points require an admin user to be logged in. A sample admin user has been created with the following details: username - admin; password - password
+
+### Roles of Each File Type
+  - Controller - sets http status and sends response
+  - Services - accesses model and create, view, manipulate data to send back to controller
+  - Routes - specify the routes without the prefix
+  - Parent Routes - add prefix based on feature
+  - Models - shared by application regardless of API version
+  - Helpers - application wide functions
