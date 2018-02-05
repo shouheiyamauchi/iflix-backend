@@ -22,7 +22,10 @@ Dummy usernames already created: admin, iflix_user, shouhei, john (all with the 
   - yarn run localDev (or npm run dev)
   - yarn run localTest
 
-The environmental variable (not in .gitignore for simplicity sake) LOCAL_DB_URL inside .env points to the local database URL. Assumes not username / password and using default port 27017. Update url using following format mongodb://[username]:[password]localhost:[port]/iflix-app if any of the variables are different.
+The environmental variable LOCAL_DB_URL inside the .env file (not in .gitignore for simplicity sake) points to the local database URL. Assumes no username / password set up and using default port 27017. If there are any variations to this, update the url using following format:
+mongodb://[username]:[password]localhost:[port]/iflix-app
+
+mongodb://[username]:[password]localhost:[port]/iflix-app-test
 
 ### Efficiency Considerations
   - A snapshot of the average, and number of each 1 ~ 5 rating is taken on each rating submission so there is no need to perform expensive db operations on each average rating display
