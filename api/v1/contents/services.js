@@ -1,7 +1,11 @@
+const _ = require('lodash');
 const Content = require(__modelsDir + '/Content');
+const AllRating = require(__modelsDir + '/AllRating');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
-const getAllContents = async (pageNo, resultsPerPage) => {
+const getAllContents = async (paginationOptions, includeRating) => {
+  const { pageNo, resultsPerPage } = paginationOptions;
+
   let searchResult;
   let errors;
 
@@ -11,15 +15,61 @@ const getAllContents = async (pageNo, resultsPerPage) => {
     if (!pageNo) errors.pageNoMissing = { 'message': 'Page number is missing from request.'};
     if (!resultsPerPage) errors.resultsPerPageMissing = { 'message': 'Results per page is missing from request.'};
   } else {
-    await Content.paginate({}, { page: pageNo, limit: resultsPerPage })
-      .then(contents => {
-        searchResult = contents;
+    const getContentListPromise = Content.paginate({}, { page: pageNo, limit: resultsPerPage });
+    const addRatingToContentListPromise = getContentListPromise.then(contentList => {
+      // option to query for and add average ratings
+      return includeRating === 'true' ? addRatingToContentList(contentList) : contentList;
+    });
+
+    await Promise.all([getContentListPromise, addRatingToContentListPromise])
+      .then(([originalContentResults, updatedContentResults]) => {
+        searchResult = updatedContentResults;
+      })
+      .catch(resultErrors => {
+        errors = resultErrors;
       });
-  }
+  };
 
   return new Promise((resolve, reject) => {
     if (!errors) {
       resolve(searchResult);
+    } else {
+      reject(errors);
+    };
+  });
+};
+
+const addRatingToContentList = async contentList => {
+  let contentListWithRatings;
+  let errors;
+
+  const amendedContentList = _.cloneDeep(contentList);
+  const contentsWithoutPaginationData = amendedContentList.docs
+
+  const contentIds = contentsWithoutPaginationData.map(content => content._id);
+
+  await AllRating.where('contentId').in(contentIds).exec()
+    .then(allRatings => {
+      // store in an object all average ratings with contentId as the key
+      const ratingsObject = {};
+
+      allRatings.forEach(allRating => {
+        ratingsObject[allRating.contentId] = allRating.average;
+      });
+
+      contentListWithRatings = contentsWithoutPaginationData.map(content => {
+        return _.merge(content.toObject(), { averageRating: ratingsObject[content._id] || null });
+      });
+
+      amendedContentList.docs = contentListWithRatings;
+    })
+    .catch(mongoErrors => {
+      errors = mongoErrors;
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(amendedContentList);
     } else {
       reject(errors);
     };

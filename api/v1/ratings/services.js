@@ -1,6 +1,6 @@
 const IndividualRating = require(__modelsDir + '/IndividualRating');
 const AllRating = require(__modelsDir + '/AllRating');
-const { findContent } = require('../contents/services')
+const { findContent } = require('../contents/services');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
 const findAllRating = async contentId => {

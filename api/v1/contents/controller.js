@@ -3,10 +3,12 @@ const { sendResponse } = require(__helpersDir + '/api');
 const { getAllContents, findContent, setContentValues, saveContent, findAndDestroyContent } = require('./services');
 
 const list = (req, res) => {
-  const pageNo = parseInt(req.query.pageNo);
-  const resultsPerPage = parseInt(req.query.resultsPerPage)
+  const paginationOptions = {
+    pageNo: parseInt(req.query.pageNo),
+    resultsPerPage: parseInt(req.query.resultsPerPage)
+  };
 
-  getAllContents(pageNo, resultsPerPage)
+  getAllContents(paginationOptions, req.query.includeRating)
     .then(contents => {
       const statusCode = 200;
       sendResponse(res, statusCode, contents);
