@@ -13,6 +13,8 @@
 
 Dummy usernames already created: admin, iflix_user, shouhei, john (all with the password 'password')
 
+'yarn' command can be replaced with 'npm'
+
 ### Steps for running API (local db)
   - git clone git@github.com:shouheiyamauchi/iflix-backend.git
   - yarn install (or npm install)
@@ -20,32 +22,31 @@ Dummy usernames already created: admin, iflix_user, shouhei, john (all with the 
   - yarn run localDev (or npm run dev)
   - yarn run localTest
 
-> The environmental variable LOCAL_DB_URL inside .env points to the local database URL. Assumes not username / password and using default port 27017. Update url using following format mongodb://<username>:<password>localhost:<port>/iflix-app if any of the variables are different.
-
-> 'yarn' command can be replaced with 'npm'
-
-### API Endpoints
-  - POST http://localhost:3001/api/v1/users/signup?username=<username>&password=<password>
-  - POST http://localhost:3001/api/v1/users/login?username=<username>&password=<password>
-  - **PUT http://localhost:3001/api/v1/users/<userId>?password=<newPassword>**
-  - **POST http://localhost:3001/api/v1/users/change-role?userId=<userId>&role=<role>**
-  - **DELETE http://localhost:3001/api/v1/users/<userId>**
-  - GET http://localhost:3001/api/v1/contents?pageNo=<pageNumber>&resultsPerPage=<resultsPerPage>&includeRating=<boolean>
-  - GET http://localhost:3001/api/v1/contents/<contentId>
-  - **POST http://localhost:3001/api/v1/contents?title=<title>&genre=<genre>&releaseDate=<MM-DD-YYYY>&thumbnail=<imageUrl>**
-  - **PUT http://localhost:3001/api/v1/contents/<contendId>?title=<title>&genre=<genre>&releaseDate=<MM-DD-YYYY>&thumbnail=<imageUrl>**
-  - **DELETE http://localhost:3001/api/v1/contents/<contendId>**
-  - GET http://localhost:3001/api/v1/ratings/<contentId>
-  - **POST http://localhost:3001/api/v1/ratings?contentId=<contentId>&userId=<userId>&stars=<1~5>**
+The environmental variable (not in .gitignore for simplicity sake) LOCAL_DB_URL inside .env points to the local database URL. Assumes not username / password and using default port 27017. Update url using following format mongodb://[username]:[password]localhost:[port]/iflix-app if any of the variables are different.
 
 ### Efficiency Considerations
   - A snapshot of the average, and number of each 1 ~ 5 rating is taken on each rating submission so there is no need to perform expensive db operations on each average rating display
-  - Pagination for listing out all contents so each API call only limited number of results
+  - Pagination for listing out all contents so each API call gives back only limited number of results
 
-### Future Additions
+### Future Improvements
   - Password should be encrypted (e.g. using bcrypt)
   - Expiration on user tokens
   - Duplication check of movie titles
+  - Filterable/sortable contents list
+
+### API Endpoints
+  - POST http://localhost:3001/api/v1/users/signup?username=[username]&password=[password]
+  - POST http://localhost:3001/api/v1/users/login?username=[username]&password=[password]
+  - **PUT http://localhost:3001/api/v1/users/[userId]?password=[newPassword]**
+  - **POST http://localhost:3001/api/v1/users/change-role?userId=[userId]&role=[role]**
+  - **DELETE http://localhost:3001/api/v1/users/[userId]**
+  - GET http://localhost:3001/api/v1/contents?pageNo=[pageNumber]&resultsPerPage=[resultsPerPage]&includeRating=[boolean]
+  - GET http://localhost:3001/api/v1/contents/[contentId]
+  - **POST http://localhost:3001/api/v1/contents?title=[title]&genre=[genre]&releaseDate=[MM-DD-YYYY]&thumbnail=[imageUrl]**
+  - **PUT http://localhost:3001/api/v1/contents/[contendId]?title=[title]&genre=[genre]&releaseDate=[MM-DD-YYYY]&thumbnail=[imageUrl]**
+  - **DELETE http://localhost:3001/api/v1/contents/[contendId]**
+  - GET http://localhost:3001/api/v1/ratings/[contentId]
+  - **POST http://localhost:3001/api/v1/ratings?contentId=[contentId]&userId=[userId]&stars=[1~5]**
 
 ### Protected Endpoints
-All endpoints in bold above are protected endpoints which require the user to be logged in. In order to achieve this, login from: http://localhost:3001/api/v1/users/login?username=<username>&password=<password> then the resulting JSON will include a token. Using Postman (or any similar client) add this to the Authorization header appended with 'JWT '. So for example: 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVhNzgzYTIxZmI0ODU3MjllYTczOTEzMCIsImlhdCI6MTUxNzgyOTc5MH0.-uZAveSJqjzLI2L7BoVforOf0_jHcdxHmQcnpE4K9g0' will be the Authorization header. The content manipulation and change-role end points require an admin user to be logged in. A sample admin user has been created with the following details: username - admin; password - password
+All endpoints in bold above are protected endpoints which require the user to be logged in. In order to achieve this, login from: http://localhost:3001/api/v1/users/login?username=[username]&password=[password] then the resulting JSON will include a token. Using Postman (or any similar client) add this to the Authorization header appended with 'JWT '. So for example: 'JWT eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVhNzgzYTIxZmI0ODU3MjllYTczOTEzMCIsImlhdCI6MTUxNzgyOTc5MH0.-uZAveSJqjzLI2L7BoVforOf0_jHcdxHmQcnpE4K9g0' will be the Authorization header. The content manipulation and change-role end points require an admin user to be logged in. A sample admin user has been created with the following details: username - admin; password - password
