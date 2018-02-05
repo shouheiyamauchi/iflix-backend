@@ -1,14 +1,8 @@
-const Content = require(__modelsDir + '/Content');
 const { sendResponse } = require(__helpersDir + '/api');
-const { getAllContents, findContent, setContentValues, saveContent, findAndDestroyContent } = require('./services');
+const { getAllContents, findContent, createAndSaveContent, findAndUpdateContent, findAndDestroyContent } = require('./services');
 
 const list = (req, res) => {
-  const paginationOptions = {
-    pageNo: parseInt(req.query.pageNo),
-    resultsPerPage: parseInt(req.query.resultsPerPage)
-  };
-
-  getAllContents(paginationOptions, req.query.includeRating)
+  getAllContents(req.query)
     .then(contents => {
       const statusCode = 200;
       sendResponse(res, statusCode, contents);
@@ -20,7 +14,7 @@ const list = (req, res) => {
 };
 
 const show = (req, res) => {
-  findContent(req.params.id)
+  findContent(req.params)
     .then(content => {
       const statusCode = 200;
       sendResponse(res, statusCode, content);
@@ -32,10 +26,7 @@ const show = (req, res) => {
 };
 
 const create = (req, res) => {
-  const content = new Content();
-  setContentValues(req.query, content);
-
-  saveContent(content)
+  createAndSaveContent(req.query)
     .then(content => {
       const statusCode = 200;
       sendResponse(res, statusCode, content);
@@ -47,16 +38,10 @@ const create = (req, res) => {
 };
 
 const update = (req, res) => {
-  const findContentPromise = findContent(req.params.id);
-  const updateContentPromise = findContentPromise.then(content => {
-    setContentValues(req.query, content);
-    return saveContent(content);
-  });
-
-  Promise.all([findContentPromise, updateContentPromise])
-    .then(([foundContent, updatedContent]) => {
+  findAndUpdateContent(req.params, req.query)
+    .then(content => {
       const statusCode = 200;
-      sendResponse(res, statusCode, updatedContent);
+      sendResponse(res, statusCode, content);
     })
     .catch(errors => {
       const statusCode = ('notFound' in errors) ? 404 : 500;

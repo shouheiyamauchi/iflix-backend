@@ -63,9 +63,9 @@ const matchUsernamePassword = async queryObject => {
   });
 };
 
-const findAndUpdateUserPassword = async (paramObject, queryObject) => {
+const findAndUpdateUserPassword = async (paramsObject, queryObject) => {
   let result, errors;
-  const { id } = paramObject;
+  const { id } = paramsObject;
   const { password } = queryObject;
 
   const findUserByIdPromise = findUserById(id);
@@ -118,9 +118,9 @@ const findAndChangeUserRole = async (queryObject) => {
   });
 };
 
-const findAndDestroyUser = async paramObject => {
+const findAndDestroyUser = async paramsObject => {
   let result, errors;
-  const { id } = paramObject;
+  const { id } = paramsObject;
 
   await User.findByIdAndRemove(id)
     .then(user => {

@@ -67,7 +67,7 @@ const setIndividualRatingValues = async (queryObject, individualRating) => {
     });
 
   if (!errors) {
-    await findContent(contentId)
+    await findContent({ id: contentId })
       .then(content => {
         individualRating.contentId = contentId;
         individualRating.userId = userId;
