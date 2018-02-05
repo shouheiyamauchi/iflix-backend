@@ -37,7 +37,7 @@ describe('- api/v1/contents', () => {
     describe('1.1 Successful requests', () => {
       it('should be a successful status 200 API call', done => {
         request(contentsApiEndPoint)
-          .get('/')
+          .get('?pageNo=1&resultsPerPage=10')
           .end(function(err, res) {
             res.should.have.property('status', 200);
             done();
@@ -46,11 +46,35 @@ describe('- api/v1/contents', () => {
 
       it('should have one result', done => {
         request(contentsApiEndPoint)
-          .get('/')
+          .get('?pageNo=1&resultsPerPage=10')
           .end(function(err, res) {
             res.should.have.property('status', 200);
-            const contentsArray = res.body.data;
+            const contentsArray = res.body.data.docs;
             contentsArray.should.be.instanceof(Array).and.have.lengthOf(1);
+            done();
+          });
+      });
+    });
+
+    describe('1.2 Unsuccessful requests', () => {
+      it('should give an error with status 500 for missing pageNo', done => {
+        request(contentsApiEndPoint)
+          .get('?resultsPerPage=10')
+          .end(function(err, res) {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('pageNoMissing');
+            done();
+          });
+      });
+
+      it('should give an error with status 500 for missing resultsPerPage', done => {
+        request(contentsApiEndPoint)
+          .get('?pageNo=1')
+          .end(function(err, res) {
+            res.should.have.property('status', 500);
+            const errors = res.body.errors;
+            errors.should.be.an.instanceOf(Object).and.have.property('resultsPerPageMissing');
             done();
           });
       });

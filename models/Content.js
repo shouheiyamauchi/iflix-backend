@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate');
 
 const Schema = mongoose.Schema;
 
@@ -10,6 +11,8 @@ const ContentSchema = new Schema({
   created: { type: Date, default: Date.now, required: true },
   updated: { type: Date, default: Date.now, required: true }
 });
+
+ContentSchema.plugin(mongoosePaginate);
 
 mongoose.model('Content', ContentSchema);
 

@@ -1,17 +1,21 @@
 const Content = require(__modelsDir + '/Content');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
 
-const getAllContents = async () => {
+const getAllContents = async (pageNo, resultsPerPage) => {
   let searchResult;
   let errors;
 
-  await Content.find({})
-    .then(contents => {
-      searchResult = contents;
-    })
-    .catch(mongoErrors => {
-      errors = convertMongoErrors(mongoErrors);
-    });
+  if (!pageNo || !resultsPerPage) {
+    errors = {};
+
+    if (!pageNo) errors.pageNoMissing = { 'message': 'Page number is missing from request.'};
+    if (!resultsPerPage) errors.resultsPerPageMissing = { 'message': 'Results per page is missing from request.'};
+  } else {
+    await Content.paginate({}, { page: pageNo, limit: resultsPerPage })
+      .then(contents => {
+        searchResult = contents;
+      });
+  }
 
   return new Promise((resolve, reject) => {
     if (!errors) {
