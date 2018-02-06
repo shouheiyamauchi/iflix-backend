@@ -38,6 +38,7 @@ mongodb://[username]:[password]localhost:[port]/iflix-app-test
   - Filterable/sortable contents list
 
 ### API Endpoints
+  - GET http://localhost:3001/api/v1/users?pageNo=[pageNumber]&resultsPerPage=[resultsPerPage]
   - POST http://localhost:3001/api/v1/users/signup?username=[username]&password=[password]
   - POST http://localhost:3001/api/v1/users/login?username=[username]&password=[password]
   - **PUT http://localhost:3001/api/v1/users/[userId]?password=[newPassword]**

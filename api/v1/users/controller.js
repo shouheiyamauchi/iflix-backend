@@ -1,5 +1,17 @@
 const { sendResponse } = require(__helpersDir + '/api');
-const { createAndSaveNewUser, matchUsernamePassword, findAndUpdateUserPassword, findAndChangeUserRole, findAndDestroyUser } = require('./services');
+const { getAllUsers, createAndSaveNewUser, matchUsernamePassword, findAndUpdateUserPassword, findAndChangeUserRole, findAndDestroyUser } = require('./services');
+
+const list = (req, res) => {
+  getAllUsers(req.query)
+    .then(contents => {
+      const statusCode = 200;
+      sendResponse(res, statusCode, contents);
+    })
+    .catch(errors => {
+      const statusCode = 500;
+      sendResponse(res, statusCode, errors);
+    });
+};
 
 const signup = (req, res) => {
   createAndSaveNewUser(req.query)
@@ -61,4 +73,4 @@ const destroy = (req, res) => {
     });
 };
 
-module.exports = { signup, login, update, changeRole, destroy };
+module.exports = { list, signup, login, update, changeRole, destroy };

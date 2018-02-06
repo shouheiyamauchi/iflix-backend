@@ -1,6 +1,35 @@
+const _ = require('lodash');
 const jwt = require('jsonwebtoken');
 const User = require(__modelsDir + '/User');
 const { convertMongoErrors, notFoundError, deleteResult } = require(__helpersDir + '/mongoDb');
+
+const getAllUsers = async queryObject => {
+  let searchResult, errors;
+  const { pageNo, resultsPerPage } = queryObject;
+
+  if (!pageNo || !resultsPerPage) {
+    errors = {};
+
+    if (!pageNo) errors.pageNoMissing = { 'message': 'Page number is missing from request.' };
+    if (!resultsPerPage) errors.resultsPerPageMissing = { 'message': 'Results per page is missing from request.' };
+  } else {
+    await User.paginate({}, { page: parseInt(pageNo), limit: parseInt(resultsPerPage) })
+      .then(users => {
+        searchResult = removePasswordFromUserList(users);
+      })
+      .catch(resultErrors => {
+        errors = resultErrors;
+      });
+  };
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(searchResult);
+    } else {
+      reject(errors);
+    };
+  });
+}
 
 const createAndSaveNewUser = async queryObject => {
   let result, errors;
@@ -144,6 +173,21 @@ const findAndDestroyUser = async paramsObject => {
   });
 };
 
+const removePasswordFromUserList =  userList => {
+  const amendedUserList = _.cloneDeep(userList);
+  const usersWithoutPaginationData = amendedUserList.docs
+
+  const userListWithoutPassword = usersWithoutPaginationData.map(user => {
+    const userData = user.toObject();
+    delete userData.password
+    return userData;
+  });
+
+  amendedUserList.docs = userListWithoutPassword;
+
+  return amendedUserList;
+};
+
 const findUserById = async id => {
   let searchResult, errors;
 
@@ -223,4 +267,4 @@ const saveUser = async user => {
 };
 
 
-module.exports = { createAndSaveNewUser, matchUsernamePassword, findAndUpdateUserPassword, findAndChangeUserRole, findAndDestroyUser };
+module.exports = { getAllUsers, createAndSaveNewUser, matchUsernamePassword, findAndUpdateUserPassword, findAndChangeUserRole, findAndDestroyUser };
