@@ -46,8 +46,8 @@ mongodb://[username]:[password]localhost:[port]/iflix-app-test
   - **DELETE http://localhost:3001/api/v1/users/[userId]**
   - GET http://localhost:3001/api/v1/contents?pageNo=[pageNumber]&resultsPerPage=[resultsPerPage]&includeRating=[boolean]
   - GET http://localhost:3001/api/v1/contents/[contentId]
-  - **POST http://localhost:3001/api/v1/contents?title=[title]&genre=[genre]&releaseDate=[MM-DD-YYYY]&thumbnail=[imageUrl]**
-  - **PUT http://localhost:3001/api/v1/contents/[contendId]?title=[title]&genre=[genre]&releaseDate=[MM-DD-YYYY]&thumbnail=[imageUrl]**
+  - **POST http://localhost:3001/api/v1/contents?title=[title]&description=[description]&genre=[genre]&releaseDate=[MM-DD-YYYY]&thumbnail=[imageUrl]**
+  - **PUT http://localhost:3001/api/v1/contents/[contendId]?title=[title]&description=[description]&genre=[genre]&releaseDate=[MM-DD-YYYY]&thumbnail=[imageUrl]**
   - **DELETE http://localhost:3001/api/v1/contents/[contendId]**
   - GET http://localhost:3001/api/v1/ratings/[contentId]
   - **POST http://localhost:3001/api/v1/ratings?contentId=[contentId]&userId=[userId]&stars=[1~5]**

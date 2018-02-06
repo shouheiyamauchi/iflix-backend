@@ -173,9 +173,10 @@ const addRatingToContentList = async contentList => {
 };
 
 const setContentValues = (queryObject, content) => {
-  const { title, genre, releaseDate, thumbnail } = queryObject;
+  const { title, description, genre, releaseDate, thumbnail } = queryObject;
 
   content.title = title;
+  content.description = description;
   content.genre = genre;
   content.releaseDate = releaseDate ? Date.parse(releaseDate) : null;
   content.thumbnail = thumbnail;

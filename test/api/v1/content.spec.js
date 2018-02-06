@@ -17,6 +17,7 @@ describe('- api/v1/contents', () => {
       .then(() => {
         const content = new Content();
         content.title = 'Superman';
+        content.description = 'Movie description';
         content.genre = 'Action';
         content.releaseDate = Date.parse('12-21-1978');
 
@@ -168,7 +169,7 @@ describe('- api/v1/contents', () => {
     describe('3.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(contentsApiEndPoint)
-          .post('?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .post('?title=Star%20Wars&description=description&genre=Sci-fi&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
@@ -178,7 +179,7 @@ describe('- api/v1/contents', () => {
 
       it('should return the same content as posted', function(done) {
         request(contentsApiEndPoint)
-          .post('?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .post('?title=Star%20Wars&description=description&genre=Sci-fi&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
@@ -193,7 +194,7 @@ describe('- api/v1/contents', () => {
     describe('3.2 Unsuccessful requests', () => {
       it('should give an error with status 500 for missing title', function(done) {
         request(contentsApiEndPoint)
-          .post('?genre=Sci-fi&releaseDate=12-14-2017')
+          .post('?genre=Sci-fi&description=description&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
@@ -205,7 +206,7 @@ describe('- api/v1/contents', () => {
 
       it('should give an error with status 500 for missing genre', function(done) {
         request(contentsApiEndPoint)
-          .post('?title=Star%20Wars&releaseDate=12-14-2017')
+          .post('?title=Star%20Wars&description=description&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
@@ -217,7 +218,7 @@ describe('- api/v1/contents', () => {
 
       it('should give an error with status 500 for missing release date', function(done) {
         request(contentsApiEndPoint)
-          .post('?title=Star%20Wars&genre=Sci-fi')
+          .post('?title=Star%20Wars&description=description&genre=Sci-fi')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
@@ -229,7 +230,7 @@ describe('- api/v1/contents', () => {
 
       it('should give an error with status 500 for invalid release date format', function(done) {
         request(contentsApiEndPoint)
-          .post('?title=Star%20Wars&releaseDate=14-00-2017')
+          .post('?title=Star%20Wars&description=description&releaseDate=14-00-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
@@ -241,7 +242,7 @@ describe('- api/v1/contents', () => {
 
       it('should give an error with status 401 for a non-admin user attempting to create content', function(done) {
         request(contentsApiEndPoint)
-          .post('?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .post('?title=Star%20Wars&description=description&genre=Sci-fi&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 401);
@@ -255,7 +256,7 @@ describe('- api/v1/contents', () => {
     describe('4.1 Successful requests', () => {
       it('should be a successful status 200 API call', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&description=description&genre=Sci-fi&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
@@ -265,7 +266,7 @@ describe('- api/v1/contents', () => {
 
       it('should return the updated content', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&description=description&genre=Sci-fi&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 200);
@@ -288,7 +289,7 @@ describe('- api/v1/contents', () => {
         };
 
         request(contentsApiEndPoint)
-          .put('/' + randomId + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .put('/' + randomId + '?title=Star%20Wars&description=description&genre=Sci-fi&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 404);
@@ -300,7 +301,7 @@ describe('- api/v1/contents', () => {
 
       it('should give an error with status 500 for missing title', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.content._id + '?genre=Sci-fi&releaseDate=12-14-2017')
+          .put('/' + this.test.content._id + '?description=description&genre=Sci-fi&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
@@ -312,7 +313,7 @@ describe('- api/v1/contents', () => {
 
       it('should give an error with status 500 for missing genre', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.content._id + '?title=Star%20Wars&releaseDate=12-14-2017')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&description=description&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
@@ -324,7 +325,7 @@ describe('- api/v1/contents', () => {
 
       it('should give an error with status 500 for missing release date', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&description=description&genre=Sci-fi')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
@@ -336,7 +337,7 @@ describe('- api/v1/contents', () => {
 
       it('should give an error with status 500 for invalid release date format', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.content._id + '?title=Star%20Wars&releaseDate=14-00-2017')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&description=description&releaseDate=14-00-2017')
           .set({'Authorization': 'JWT ' + this.test.adminToken})
           .end((err, res) => {
             res.should.have.property('status', 500);
@@ -348,7 +349,7 @@ describe('- api/v1/contents', () => {
 
       it('should give an error with status 401 for a non-admin user attempting to update content', function(done) {
         request(contentsApiEndPoint)
-          .put('/' + this.test.content._id + '?title=Star%20Wars&genre=Sci-fi&releaseDate=12-14-2017')
+          .put('/' + this.test.content._id + '?title=Star%20Wars&description=description&genre=Sci-fi&releaseDate=12-14-2017')
           .set({'Authorization': 'JWT ' + this.test.userToken})
           .end((err, res) => {
             res.should.have.property('status', 401);

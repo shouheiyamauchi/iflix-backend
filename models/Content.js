@@ -5,6 +5,7 @@ const Schema = mongoose.Schema;
 
 const ContentSchema = new Schema({
   title: { type: String, required: true, index: true },
+  description: { type: String, required: true },
   genre: { type: String, required: true, index: true },
   releaseDate: { type: Date, required: true },
   thumbnail: { type: String },

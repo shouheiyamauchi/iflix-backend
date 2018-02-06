@@ -19,6 +19,7 @@ describe('- api/v1/ratings', () => {
       .then(() => {
         const content = new Content();
         content.title = 'Superman';
+        content.description = 'Movie description';
         content.genre = 'Action';
         content.releaseDate = Date.parse('12-21-1978');
 
@@ -220,6 +221,7 @@ describe('- api/v1/ratings', () => {
       it('should have null average rating on first create', function(done) {
         const content = new Content();
         content.title = 'Superman';
+        content.description = 'Movie description';
         content.genre = 'Action';
         content.releaseDate = Date.parse('12-21-1978');
 
