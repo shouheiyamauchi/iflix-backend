@@ -29,6 +29,27 @@ const findAllRating = async paramsObject => {
   });
 };
 
+const findIndividualRating = async queryObject => {
+  let result, errors;
+  const { userId, contentId } = queryObject;
+
+  await IndividualRating.findOne({ userId, contentId }).exec()
+    .then(individualRating => {
+      result = individualRating;
+    })
+    .catch(mongoErrors => {
+      errors = convertMongoErrors(mongoErrors);
+    });
+
+  return new Promise((resolve, reject) => {
+    if (!errors) {
+      resolve(result);
+    } else {
+      reject(errors);
+    };
+  });
+}
+
 const createRatingAndUpdateAllRating = async queryObject => {
   let result, errors;
 
@@ -61,8 +82,8 @@ const setIndividualRatingValues = async (queryObject, individualRating) => {
   const { contentId, userId, stars } = queryObject;
 
   await IndividualRating.findOne({ contentId: contentId, userId: userId }).exec()
-    .then(content => {
-      if (content) errors = { alreadyRated: { message: 'User with ID ' + userId + ' has already rated content with ID ' + contentId + '.' } };
+    .then(rating => {
+      if (rating) errors = { alreadyRated: { message: 'User with ID ' + userId + ' has already rated content with ID ' + contentId + '.' } };
     })
     .catch(mongoErrors => {
       errors = convertMongoErrors(mongoErrors);
@@ -189,4 +210,4 @@ const calculateAverageRating = allRating => {
   return Math.round(totalRating / allRating.totalStarsCount * 10) / 10;
 };
 
-module.exports = { findAllRating, createRatingAndUpdateAllRating };
+module.exports = { findAllRating, findIndividualRating, createRatingAndUpdateAllRating };

@@ -1,5 +1,5 @@
 const { sendResponse } = require(__helpersDir + '/api');
-const { findAllRating, createRatingAndUpdateAllRating } = require('./services');
+const { findAllRating, findIndividualRating, createRatingAndUpdateAllRating } = require('./services');
 
 const show = (req, res) => {
   findAllRating(req.params)
@@ -13,6 +13,18 @@ const show = (req, res) => {
     });
 };
 
+const showIndividual = (req, res) => {
+  findIndividualRating(req.query)
+    .then(individualRating => {
+      const statusCode = 200;
+      sendResponse(res, statusCode, individualRating);
+    })
+    .catch(errors => {
+      const statusCode = ('notFound' in errors) ? 404 : 500;
+      sendResponse(res, statusCode, errors);
+    });
+}
+
 const create = (req, res) => {
   createRatingAndUpdateAllRating(req.query)
     .then(allRating => {
@@ -25,4 +37,4 @@ const create = (req, res) => {
     });
 };
 
-module.exports = { show, create };
+module.exports = { show, showIndividual, create };

@@ -76,7 +76,7 @@ const matchUsernamePassword = async queryObject => {
         } else {
           const payload = {id: user._id};
           const token = jwt.sign(payload, process.env.JWT_SECRET);
-          result = { userId: user._id, userRole: user.role, token };
+          result = { userId: user._id, username: user.username, userRole: user.role, token };
         };
       })
       .catch(mongoErrors => {
