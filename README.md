@@ -20,6 +20,7 @@ Dummy usernames already created: admin, iflix_user, shouhei, john (all with the 
   - yarn install (or npm install)
   - sudo mongod
   - yarn run localDev (or npm run dev)
+  - yarn run dbSeed (or npm run dbSeed) - load up dummy data
   - yarn run localTest
 
 The environmental variable LOCAL_DB_URL inside the .env file (not in .gitignore for simplicity sake) points to the local database URL. Assumes no username / password set up and using default port 27017. If there are any variations to this, update the url using following format:
